@@ -1,12 +1,22 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import type { ActivityData } from '../models/ActivityModel';
+import type { Colors } from '../theme/Color';
 
-export default function ActivitySummary({ activity, colors }) {
+interface ActivitySummaryProps {
+  activity: ActivityData;
+  colors: Colors;
+}
+
+export default function ActivitySummary({
+  activity,
+  colors,
+}: ActivitySummaryProps) {
   return (
     <View style={[styles.card, { backgroundColor: colors.card }]}>
       <Text style={[styles.heading, { color: colors.text }]}>
-        ▦  Today's Activity
+        ▦  Today&apos;s Activity
       </Text>
 
       <View style={styles.content}>

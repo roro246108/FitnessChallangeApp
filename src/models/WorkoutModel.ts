@@ -1,18 +1,36 @@
 
-export const WORKOUT_TYPES = [
+export type WorkoutType = 'Running' | 'Strength' | 'Cardio' | 'Yoga';
+
+export type EffortLevel = 'Easy' | 'Moderate' | 'Intense';
+
+export interface WorkoutTypeOption {
+  id: WorkoutType;
+  label: string;
+  icon: string;
+  caloriesPerMinute: number;
+}
+
+export interface EffortLevelOption {
+  id: EffortLevel;
+  label: string;
+  multiplier: number;
+  color: string;
+}
+
+export const WORKOUT_TYPES: WorkoutTypeOption[] = [
   { id: 'Running', label: 'Running', icon: '👟', caloriesPerMinute: 8 },
   { id: 'Strength', label: 'Strength', icon: '🏋️', caloriesPerMinute: 6 },
   { id: 'Cardio', label: 'Cardio', icon: '❤️', caloriesPerMinute: 9 },
   { id: 'Yoga', label: 'Yoga', icon: '🧘', caloriesPerMinute: 3 },
 ];
 
-export const EFFORT_LEVELS = [
+export const EFFORT_LEVELS: EffortLevelOption[] = [
   { id: 'Easy', label: 'Easy', multiplier: 0.8, color: '#CDFF7E' },
   { id: 'Moderate', label: 'Moderate', multiplier: 1, color: '#A38DF2' },
   { id: 'Intense', label: 'Intense', multiplier: 1.3, color: '#FF6B9A' },
 ];
 
-export const getTodayDate = () => {
+export const getTodayDate = (): string => {
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -21,7 +39,11 @@ export const getTodayDate = () => {
   return `${year}-${month}-${day}`;
 };
 
-export const estimateCalories = (type, duration, effort) => {
+export const estimateCalories = (
+  type: WorkoutType,
+  duration: number,
+  effort: EffortLevel
+): number => {
   const workout = WORKOUT_TYPES.find((item) => item.id === type);
   const level = EFFORT_LEVELS.find((item) => item.id === effort);
 

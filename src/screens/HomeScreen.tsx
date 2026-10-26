@@ -7,14 +7,21 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  StatusBar,
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 
 import ActivitySummary from '../components/ActivitySummary';
 import ChallengeCard from '../components/ChallengeCard';
 import ProgressCard from '../components/ProgressCard';
+import type { Colors } from '../theme/Color';
+import useHomeViewModel from '../viewmodels/HomeViewModel';
 
-export default function HomeScreen({ vm, colors }) {
+interface HomeScreenProps {
+  vm: ReturnType<typeof useHomeViewModel>;
+  colors: Colors;
+}
+
+export default function HomeScreen({ vm, colors }: HomeScreenProps) {
   const actions = [
     { icon: '🏃', title: 'Log Workout', screen: 'Record Workout' },
     { icon: '⚑', title: 'My Goals', screen: 'My Goals' },
@@ -54,8 +61,7 @@ export default function HomeScreen({ vm, colors }) {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
       <StatusBar
-        barStyle={vm.darkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={colors.background}
+        style={vm.darkMode ? 'light' : 'dark'}
       />
 
       <ScrollView
@@ -68,7 +74,7 @@ export default function HomeScreen({ vm, colors }) {
               Hello Rawan!
             </Text>
             <Text style={[styles.subtitle, { color: colors.muted }]}>
-              Keep moving, you're doing great!
+              Keep moving, you&apos;re doing great!
             </Text>
           </View>
 

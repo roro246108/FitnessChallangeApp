@@ -8,21 +8,31 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  StatusBar,
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 
 import BrowseChallengeCard from '../components/BrowseChallengeCard';
-import useBrowseChallengesViewModel from '../viewmodels/BrowseChallengesViewModel';
+import useBrowseChallengesViewModel, {
+  type ChallengeCategory,
+} from '../viewmodels/BrowseChallengesViewModel';
+import type { Colors } from '../theme/Color';
+
+interface BrowseChallengesScreenProps {
+  colors: Colors;
+  darkMode: boolean;
+  onBack: () => void;
+  onNavigate: (screen: string) => void;
+}
 
 export default function BrowseChallengesScreen({
   colors,
   darkMode,
   onBack,
   onNavigate,
-}) {
+}: BrowseChallengesScreenProps) {
   const vm = useBrowseChallengesViewModel();
 
-  const categoryIcons = {
+  const categoryIcons: Record<ChallengeCategory, string> = {
     All: '▦',
     Steps: '👟',
     Cardio: '♥',
@@ -35,8 +45,7 @@ export default function BrowseChallengesScreen({
       style={[styles.safe, { backgroundColor: colors.background }]}
     >
       <StatusBar
-        barStyle={darkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={colors.background}
+        style={darkMode ? 'light' : 'dark'}
       />
 
       <ScrollView
@@ -50,7 +59,9 @@ export default function BrowseChallengesScreen({
             style={styles.backButton}
             accessibilityLabel="Back to home"
           >
-            <Text style={[styles.backIcon, { color: colors.text }]}>‹</Text>
+            <Text style={[styles.backIcon, { color: colors.text }]}>
+              ‹
+            </Text>
           </TouchableOpacity>
 
           <View style={styles.headerText}>
@@ -67,13 +78,19 @@ export default function BrowseChallengesScreen({
           </Text>
         </View>
 
+        {/* Search */}
         <View
           style={[
             styles.searchBox,
-            { backgroundColor: colors.card, borderColor: colors.track },
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.track,
+            },
           ]}
         >
-          <Text style={[styles.searchIcon, { color: colors.muted }]}>⌕</Text>
+          <Text style={[styles.searchIcon, { color: colors.muted }]}>
+            ⌕
+          </Text>
 
           <TextInput
             value={vm.searchQuery}
@@ -86,12 +103,18 @@ export default function BrowseChallengesScreen({
           />
 
           {vm.searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => vm.setSearchQuery('')}>
-              <Text style={{ color: colors.muted, fontSize: 19 }}>×</Text>
+            <TouchableOpacity
+              onPress={() => vm.setSearchQuery('')}
+              accessibilityLabel="Clear search"
+            >
+              <Text style={{ color: colors.muted, fontSize: 19 }}>
+                ×
+              </Text>
             </TouchableOpacity>
           )}
         </View>
 
+        {/* Category filters */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -107,7 +130,9 @@ export default function BrowseChallengesScreen({
                 style={[
                   styles.category,
                   {
-                    backgroundColor: selected ? colors.primary : colors.card,
+                    backgroundColor: selected
+                      ? colors.primary
+                      : colors.card,
                     borderColor: colors.track,
                   },
                 ]}
@@ -119,7 +144,9 @@ export default function BrowseChallengesScreen({
                 <Text
                   style={[
                     styles.categoryText,
-                    { color: selected ? '#FFFFFF' : colors.text },
+                    {
+                      color: selected ? '#FFFFFF' : colors.text,
+                    },
                   ]}
                 >
                   {category}
@@ -129,12 +156,15 @@ export default function BrowseChallengesScreen({
           })}
         </ScrollView>
 
+        {/* Challenge list */}
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
             Featured Challenges
           </Text>
+
           <Text style={[styles.resultCount, { color: colors.primary }]}>
-            {vm.challenges.length} challenges
+            {vm.challenges.length}{' '}
+            {vm.challenges.length === 1 ? 'challenge' : 'challenges'}
           </Text>
         </View>
 
@@ -149,51 +179,75 @@ export default function BrowseChallengesScreen({
             />
           ))
         ) : (
-          <View style={[styles.emptyState, { backgroundColor: colors.card }]}>
+          <View
+            style={[
+              styles.emptyState,
+              { backgroundColor: colors.card },
+            ]}
+          >
             <Text style={{ fontSize: 38 }}>🔎</Text>
+
             <Text style={[styles.emptyTitle, { color: colors.text }]}>
               No challenges found
             </Text>
+
             <Text style={[styles.emptyText, { color: colors.muted }]}>
               Try another search or category.
             </Text>
+
             <TouchableOpacity
               onPress={() => {
                 vm.setSearchQuery('');
                 vm.setSelectedCategory('All');
               }}
-              style={[styles.resetButton, { backgroundColor: colors.primary }]}
+              style={[
+                styles.resetButton,
+                { backgroundColor: colors.primary },
+              ]}
             >
-              <Text style={styles.resetButtonText}>Clear filters</Text>
+              <Text style={styles.resetButtonText}>
+                Clear filters
+              </Text>
             </TouchableOpacity>
           </View>
         )}
       </ScrollView>
 
+      {/* Bottom navigation */}
       <View
         style={[
           styles.bottomNav,
-          { backgroundColor: colors.card, borderColor: colors.track },
+          {
+            backgroundColor: colors.card,
+            borderColor: colors.track,
+          },
         ]}
       >
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={onBack}
-        >
-          <Text style={[styles.navIcon, { color: colors.muted }]}>⌂</Text>
-          <Text style={[styles.navLabel, { color: colors.muted }]}>Home</Text>
+        <TouchableOpacity style={styles.navItem} onPress={onBack}>
+          <Text style={[styles.navIcon, { color: colors.muted }]}>
+            ⌂
+          </Text>
+          <Text style={[styles.navLabel, { color: colors.muted }]}>
+            Home
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.navItem}>
-          <Text style={[styles.navIcon, { color: colors.primary }]}>⚑</Text>
+          <Text style={[styles.navIcon, { color: colors.primary }]}>
+            ⚑
+          </Text>
           <Text style={[styles.navLabel, { color: colors.primary }]}>
             Challenges
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.addButton, { backgroundColor: colors.primary }]}
+          style={[
+            styles.addButton,
+            { backgroundColor: colors.primary },
+          ]}
           onPress={() => onNavigate('Record Workout')}
+          accessibilityLabel="Record workout"
         >
           <Text style={styles.addText}>＋</Text>
         </TouchableOpacity>
@@ -202,7 +256,9 @@ export default function BrowseChallengesScreen({
           style={styles.navItem}
           onPress={() => onNavigate('Leaderboard')}
         >
-          <Text style={[styles.navIcon, { color: colors.muted }]}>▥</Text>
+          <Text style={[styles.navIcon, { color: colors.muted }]}>
+            ▥
+          </Text>
           <Text style={[styles.navLabel, { color: colors.muted }]}>
             Leaderboard
           </Text>
@@ -212,8 +268,12 @@ export default function BrowseChallengesScreen({
           style={styles.navItem}
           onPress={() => onNavigate('Profile')}
         >
-          <Text style={[styles.navIcon, { color: colors.muted }]}>◉</Text>
-          <Text style={[styles.navLabel, { color: colors.muted }]}>Profile</Text>
+          <Text style={[styles.navIcon, { color: colors.muted }]}>
+            ◉
+          </Text>
+          <Text style={[styles.navLabel, { color: colors.muted }]}>
+            Profile
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

@@ -1,8 +1,18 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import type { Challenge } from '../models/ActivityModel';
+import type { Colors } from '../theme/Color';
 
-export default function ChallengeCard({ challenge, colors }) {
+interface ChallengeCardProps {
+  challenge: Challenge;
+  colors: Colors;
+}
+
+export default function ChallengeCard({
+  challenge,
+  colors,
+}: ChallengeCardProps) {
   return (
     <View style={[styles.card, { backgroundColor: colors.card }]}>
       <View style={styles.image}>

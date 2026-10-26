@@ -7,30 +7,48 @@ import {
   estimateCalories,
 } from '../models/WorkoutModel';
 
-export default function useRecordWorkoutViewModel() {
-  const [workoutType, setWorkoutType] = useState('Running');
-  const [duration, setDuration] = useState(45);
-  const [date, setDate] = useState(getTodayDate());
-  const [notes, setNotes] = useState('');
-  const [effort, setEffort] = useState('Moderate');
+type WorkoutType = (typeof WORKOUT_TYPES)[number]['id'];
+type EffortLevel = (typeof EFFORT_LEVELS)[number]['id'];
 
-  const [workouts, setWorkouts] = useState([]);
-  const [editingId, setEditingId] = useState(null);
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
+interface Workout {
+  id: string;
+  type: WorkoutType;
+  duration: number;
+  date: string;
+  notes: string;
+  effort: EffortLevel;
+  calories: number;
+}
+
+export default function useRecordWorkoutViewModel() {
+  const [workoutType, setWorkoutType] =
+    useState<WorkoutType>('Running');
+
+  const [duration, setDuration] = useState<number>(45);
+  const [date, setDate] = useState<string>(getTodayDate());
+  const [notes, setNotes] = useState<string>('');
+  const [effort, setEffort] =
+    useState<EffortLevel>('Moderate');
+
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [error, setError] = useState<string>('');
+  const [message, setMessage] = useState<string>('');
 
   const calories = useMemo(
     () => estimateCalories(workoutType, duration, effort),
     [workoutType, duration, effort]
   );
 
-  const updateDuration = (amount) => {
-    setDuration((current) => Math.max(1, Math.min(300, current + amount)));
+  const updateDuration = (amount: number): void => {
+    setDuration((current) =>
+      Math.max(1, Math.min(300, current + amount))
+    );
     setError('');
     setMessage('');
   };
 
-  const resetForm = () => {
+  const resetForm = (): void => {
     setWorkoutType('Running');
     setDuration(45);
     setDate(getTodayDate());
@@ -41,7 +59,7 @@ export default function useRecordWorkoutViewModel() {
     setMessage('');
   };
 
-  const editWorkout = (workout) => {
+  const editWorkout = (workout: Workout): void => {
     setWorkoutType(workout.type);
     setDuration(workout.duration);
     setDate(workout.date);
@@ -52,13 +70,14 @@ export default function useRecordWorkoutViewModel() {
     setMessage('');
   };
 
-  const saveWorkout = () => {
+  const saveWorkout = (): boolean => {
     if (!date.trim()) {
       setError('Please enter a workout date.');
       return false;
     }
 
     const parsedDate = new Date(`${date}T00:00:00`);
+
     const validDate =
       /^\d{4}-\d{2}-\d{2}$/.test(date) &&
       !Number.isNaN(parsedDate.getTime()) &&
@@ -74,13 +93,17 @@ export default function useRecordWorkoutViewModel() {
       return false;
     }
 
-    if (!Number.isFinite(duration) || duration < 1 || duration > 300) {
+    if (
+      !Number.isFinite(duration) ||
+      duration < 1 ||
+      duration > 300
+    ) {
       setError('Duration must be between 1 and 300 minutes.');
       return false;
     }
 
-    const workout = {
-      id: editingId || `${Date.now()}`,
+    const workout: Workout = {
+      id: editingId ?? `${Date.now()}`,
       type: workoutType,
       duration,
       date,
@@ -89,9 +112,11 @@ export default function useRecordWorkoutViewModel() {
       calories,
     };
 
-    if (editingId) {
+    if (editingId !== null) {
       setWorkouts((current) =>
-        current.map((item) => item.id === editingId ? workout : item)
+        current.map((item) =>
+          item.id === editingId ? workout : item
+        )
       );
       setMessage('Workout updated successfully!');
     } else {
@@ -125,6 +150,6 @@ export default function useRecordWorkoutViewModel() {
     resetForm,
     error,
     message,
-    clearMessage: () => setMessage(''),
+    clearMessage: (): void => setMessage(''),
   };
 }

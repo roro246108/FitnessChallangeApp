@@ -8,10 +8,11 @@ import RecordWorkoutScreen from './src/screens/RecordWorkoutScreen';
 
 import useHomeViewModel from './src/viewmodels/HomeViewModel';
 import { lightColors, darkColors } from './src/theme/Color';
+import type { Colors } from './src/theme/Color';
 
 export default function App() {
   const vm = useHomeViewModel();
-  const colors = vm.darkMode ? darkColors : lightColors;
+  const colors: Colors = vm.darkMode ? darkColors : lightColors;
 
   // Browse Challenges screen
   if (vm.activeScreen === 'Challenges') {

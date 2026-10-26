@@ -1,5 +1,16 @@
 
-export const lightColors = {
+export interface Colors {
+  background: string;
+  card: string;
+  primary: string;
+  lavender: string;
+  lime: string;
+  text: string;
+  muted: string;
+  track: string;
+}
+
+export const lightColors: Colors = {
   background: '#F7F6FF',
   card: '#FFFFFF',
   primary: '#6F4BF2',
@@ -10,7 +21,7 @@ export const lightColors = {
   track: '#E8E3F5',
 };
 
-export const darkColors = {
+export const darkColors: Colors = {
   background: '#0E0B1F',
   card: '#241C40',
   primary: '#6F4BF2',

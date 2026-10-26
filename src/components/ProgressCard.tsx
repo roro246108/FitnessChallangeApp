@@ -1,6 +1,17 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import type { Colors } from '../theme/Color';
+
+interface ProgressCardProps {
+  icon: string;
+  label: string;
+  value: number;
+  goal: string;
+  progress: number;
+  color: string;
+  colors: Colors;
+}
 
 export default function ProgressCard({
   icon,
@@ -10,7 +21,7 @@ export default function ProgressCard({
   progress,
   color,
   colors,
-}) {
+}: ProgressCardProps) {
   return (
     <View style={[styles.card, { backgroundColor: colors.card }]}>
       <Text style={[styles.label, { color: colors.text }]}>

@@ -7,22 +7,22 @@ import {
 } from '../models/ActivityModel';
 
 export default function useHomeViewModel() {
-  const [darkMode, setDarkMode] = useState(true);
-  const [activeScreen, setActiveScreen] = useState('Home');
+  const [darkMode, setDarkMode] = useState<boolean>(true);
+  const [activeScreen, setActiveScreen] = useState<string>('Home');
 
   const activity = useMemo(() => getActivityData(), []);
   const challenges = useMemo(() => getChallenges(), []);
   const achievements = useMemo(() => getAchievements(), []);
 
-  const toggleTheme = () => {
+  const toggleTheme = (): void => {
     setDarkMode((current) => !current);
   };
 
-  const navigateTo = (screen) => {
+  const navigateTo = (screen: string): void => {
     setActiveScreen(screen);
   };
 
-  const goHome = () => {
+  const goHome = (): void => {
     setActiveScreen('Home');
   };
 

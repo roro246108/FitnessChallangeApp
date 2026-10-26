@@ -7,12 +7,27 @@ import {
   StyleSheet,
 } from 'react-native';
 
+import type { Challenge } from '../models/ActivityModel';
+
+interface BrowseChallengeCardProps {
+  challenge: Challenge;
+  colors: {
+    card: string;
+    track: string;
+    text: string;
+    muted: string;
+    primary: string;
+  };
+  joined: boolean;
+  onJoin: () => void;
+}
+
 export default function BrowseChallengeCard({
   challenge,
   colors,
   joined,
   onJoin,
-}) {
+}: BrowseChallengeCardProps) {
   return (
     <View
       style={[
@@ -68,7 +83,7 @@ export default function BrowseChallengeCard({
               { color: joined ? colors.text : '#FFFFFF' },
             ]}
           >
-            {joined ? 'Joined ✓' : 'Join Challenge  →'}
+            {joined ? 'Joined ✓' : 'Join Challenge →'}
           </Text>
         </TouchableOpacity>
       </View>

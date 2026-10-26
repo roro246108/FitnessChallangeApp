@@ -8,20 +8,28 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  StatusBar,
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 
 import useRecordWorkoutViewModel from '../viewmodels/RecordWorkoutViewModel';
+import type { Colors } from '../theme/Color';
+
+interface RecordWorkoutScreenProps {
+  colors: Colors;
+  darkMode: boolean;
+  onBack: () => void;
+  onNavigate: (screen: string) => void;
+}
 
 export default function RecordWorkoutScreen({
   colors,
   darkMode,
   onBack,
   onNavigate,
-}) {
+}: RecordWorkoutScreenProps) {
   const vm = useRecordWorkoutViewModel();
 
-  const formatDate = (value) => {
+  const formatDate = (value: string): string => {
     const [year, month, day] = value.split('-');
     return `${year}-${month}-${day}`;
   };
@@ -31,8 +39,7 @@ export default function RecordWorkoutScreen({
       style={[styles.safe, { backgroundColor: colors.background }]}
     >
       <StatusBar
-        barStyle={darkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={colors.background}
+        style={darkMode ? 'light' : 'dark'}
       />
 
       <ScrollView
