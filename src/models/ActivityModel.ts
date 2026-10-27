@@ -1,3 +1,4 @@
+import { mockCurrentUser, thirtyDayChallengeId } from './MockData';
 
 export interface ActivityData {
   steps: number;
@@ -6,6 +7,9 @@ export interface ActivityData {
   caloriesGoal: number;
   workoutMinutes: number;
   workoutGoal: number;
+  weeklyWorkouts: number;
+  weeklyWorkoutGoal: number;
+  activityLabel: string;
   streak: number;
 }
 
@@ -41,9 +45,12 @@ export const getActivityData = (): ActivityData => ({
   stepsGoal: 10000,
   calories: 320,
   caloriesGoal: 500,
-  workoutMinutes: 45,
+  workoutMinutes: mockCurrentUser.workoutMinutes,
   workoutGoal: 60,
-  streak: 5,
+  weeklyWorkouts: mockCurrentUser.workouts,
+  weeklyWorkoutGoal: mockCurrentUser.weeklyWorkoutGoal,
+  activityLabel: mockCurrentUser.activity,
+  streak: mockCurrentUser.streak,
 });
 
 export const getChallenges = (): Challenge[] => [
@@ -63,7 +70,7 @@ export const getChallenges = (): Challenge[] => [
     popular: true,
   },
   {
-    id: 'strength-30',
+    id: thirtyDayChallengeId,
     title: '30-Day Strength Challenge',
     description: 'Build a stronger you with simple daily workouts.',
     category: 'Strength',
@@ -105,6 +112,14 @@ export const getChallenges = (): Challenge[] => [
     popular: true,
   },
 ];
+
+export const getActiveChallenges = (): Challenge[] => {
+  const activeChallengeIds = new Set(mockCurrentUser.activeChallengeIds);
+
+  return getChallenges().filter((challenge) =>
+    activeChallengeIds.has(challenge.id),
+  );
+};
 
 export const getAchievements = (): Achievement[] => [
   { id: 'steps', icon: '👟', title: 'Step Starter' },

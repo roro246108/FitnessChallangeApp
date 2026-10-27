@@ -1,22 +1,39 @@
-
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-
-import HomeScreen from './src/screens/HomeScreen';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import FriendsScreen from './src/screens/FriendsScreen';
 import BrowseChallengesScreen from './src/screens/BrowseChallengesScreen';
+import HomeScreen from './src/screens/HomeScreen';
+import LeaderboardScreen from './src/screens/LeaderboardScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
 import RecordWorkoutScreen from './src/screens/RecordWorkoutScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 
+import useFriendsViewModel from './src/viewmodels/FriendsViewModel';
 import useHomeViewModel from './src/viewmodels/HomeViewModel';
+import useLeaderboardViewModel from './src/viewmodels/LeaderboardViewModel';
+import useProfileViewModel from './src/viewmodels/ProfileViewModel';
 import useAuthViewModel from './src/viewmodels/AuthViewModel';
 
 import { lightColors, darkColors } from './src/theme/Color';
 import type { Colors } from './src/theme/Color';
 
-export default function App() {
+function AppContent() {
   const vm = useHomeViewModel();
+  const profileVm = useProfileViewModel(vm.activity);
+  const friendsVm = useFriendsViewModel(profileVm.profile.username);
+  const leaderboardVm = useLeaderboardViewModel({
+    currentUserName: profileVm.profile.fullName,
+    currentUserUsername: profileVm.profile.username,
+    currentUserInitials: profileVm.initials,
+    friends: friendsVm.friends,
+  });
+  const firstName =
+    profileVm.profile.fullName.trim().split(/\s+/)[0] || 'there';
+  const colors: Colors = vm.darkMode ? darkColors : lightColors;
+
   const auth = useAuthViewModel();
 
   const colors: Colors = vm.darkMode ? darkColors : lightColors;
@@ -57,7 +74,7 @@ export default function App() {
       <BrowseChallengesScreen
         colors={colors}
         darkMode={vm.darkMode}
-        onBack={vm.goHome}
+        onBack={vm.goBack}
         onNavigate={vm.navigateTo}
       />
     );
@@ -68,7 +85,51 @@ export default function App() {
       <RecordWorkoutScreen
         colors={colors}
         darkMode={vm.darkMode}
-        onBack={vm.goHome}
+        onBack={vm.goBack}
+        onNavigate={vm.navigateTo}
+      />
+    );
+  }
+
+  if (vm.activeScreen === 'Leaderboard') {
+    return (
+      <LeaderboardScreen
+        colors={colors}
+        darkMode={vm.darkMode}
+        vm={leaderboardVm}
+        onBack={vm.goBack}
+        onNavigate={vm.navigateTo}
+      />
+    );
+  }
+
+  if (vm.activeScreen === 'Profile') {
+    return (
+      <ProfileScreen
+        colors={colors}
+        darkMode={vm.darkMode}
+        activity={vm.activity}
+        activeChallenges={vm.activeChallenges}
+        achievements={leaderboardVm.achievements}
+        levelInfo={leaderboardVm.levelInfo}
+        unlockedAchievements={leaderboardVm.unlockedCount}
+        totalAchievements={leaderboardVm.achievements.length}
+        totalPoints={leaderboardVm.totalPoints}
+        vm={profileVm}
+        onBack={vm.goBack}
+        onNavigate={vm.navigateTo}
+        onToggleTheme={vm.toggleTheme}
+      />
+    );
+  }
+
+  if (vm.activeScreen === 'Friends') {
+    return (
+      <FriendsScreen
+        colors={colors}
+        darkMode={vm.darkMode}
+        vm={friendsVm}
+        onBack={vm.goBack}
         onNavigate={vm.navigateTo}
       />
     );
@@ -103,7 +164,15 @@ export default function App() {
     );
   }
 
-  return <HomeScreen vm={vm} colors={colors} />;
+  return <HomeScreen vm={vm} colors={colors} firstName={firstName} />;
+}
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <AppContent />
+    </SafeAreaProvider>
+  );
 }
 
 const styles = StyleSheet.create({

@@ -11,6 +11,7 @@ import {
   Platform,
   ImageBackground,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import useRecordWorkoutViewModel from '../viewmodels/RecordWorkoutViewModel';
@@ -70,6 +71,7 @@ export default function RecordWorkoutScreen({
 
   return (
     <SafeAreaView
+      edges={['top']}
       style={[styles.safe, { backgroundColor: colors.background }]}
     >
       <StatusBar style={darkMode ? 'light' : 'dark'} />
