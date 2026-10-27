@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   View,
@@ -340,5 +339,40 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 12,
+  },
+  bottomNav: {
+    minHeight: 62,
+    borderTopWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingHorizontal: 5,
+    paddingVertical: 5,
+  },
+  navItem: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  navIcon: {
+    fontSize: 23,
+    lineHeight: 28,
+    fontWeight: '700',
+  },
+  navLabel: {
+    fontSize: 9,
+  },
+  addButton: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 3,
+  },
+  addText: {
+    color: '#FFFFFF',
+    fontSize: 30,
+    lineHeight: 35,
   },
 });

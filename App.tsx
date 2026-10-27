@@ -7,12 +7,17 @@ import HomeScreen from './src/screens/HomeScreen';
 import LeaderboardScreen from './src/screens/LeaderboardScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import RecordWorkoutScreen from './src/screens/RecordWorkoutScreen';
+import OnboardingScreen from './src/screens/OnboardingScreen';
+import LoginScreen from './src/screens/LoginScreen';
+import RegisterScreen from './src/screens/RegisterScreen';
 
 import useFriendsViewModel from './src/viewmodels/FriendsViewModel';
 import useHomeViewModel from './src/viewmodels/HomeViewModel';
 import useLeaderboardViewModel from './src/viewmodels/LeaderboardViewModel';
 import useProfileViewModel from './src/viewmodels/ProfileViewModel';
-import { darkColors, lightColors } from './src/theme/Color';
+import useAuthViewModel from './src/viewmodels/AuthViewModel';
+
+import { lightColors, darkColors } from './src/theme/Color';
 import type { Colors } from './src/theme/Color';
 
 function AppContent() {
@@ -29,6 +34,41 @@ function AppContent() {
     profileVm.profile.fullName.trim().split(/\s+/)[0] || 'there';
   const colors: Colors = vm.darkMode ? darkColors : lightColors;
 
+  const auth = useAuthViewModel();
+
+  const colors: Colors = vm.darkMode ? darkColors : lightColors;
+
+  // 1. Onboarding screen
+  if (auth.authScreen === 'Onboarding') {
+    return (
+      <OnboardingScreen
+        onGetStarted={auth.showLogin}
+      />
+    );
+  }
+
+  // 2. Login screen
+  if (auth.authScreen === 'Login') {
+    return (
+      <LoginScreen
+        onLogin={auth.login}
+        onRegister={auth.showRegister}
+        onForgotPassword={auth.forgotPassword}
+      />
+    );
+  }
+
+  // 3. Register screen
+  if (auth.authScreen === 'Register') {
+    return (
+      <RegisterScreen
+        onRegister={auth.register}
+        onLogin={auth.showLogin}
+      />
+    );
+  }
+
+  // 4. Home and existing app screens
   if (vm.activeScreen === 'Challenges') {
     return (
       <BrowseChallengesScreen
@@ -95,6 +135,7 @@ function AppContent() {
     );
   }
 
+  // Existing placeholder screens
   if (vm.activeScreen !== 'Home') {
     return (
       <View
@@ -141,21 +182,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 24,
   },
+
   title: {
     fontSize: 24,
     fontWeight: '800',
     marginTop: 16,
   },
+
   subtitle: {
     marginTop: 8,
     textAlign: 'center',
   },
+
   button: {
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 14,
     marginTop: 24,
   },
+
   buttonText: {
     color: '#FFFFFF',
     fontWeight: '700',
