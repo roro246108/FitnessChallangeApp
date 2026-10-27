@@ -32,7 +32,6 @@ function AppContent() {
   });
   const firstName =
     profileVm.profile.fullName.trim().split(/\s+/)[0] || 'there';
-  const colors: Colors = vm.darkMode ? darkColors : lightColors;
 
   const auth = useAuthViewModel();
 
