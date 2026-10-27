@@ -6,11 +6,12 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
 import ActivitySummary from '../components/ActivitySummary';
+import BottomNav from '../components/BottomNav';
 import ChallengeCard from '../components/ChallengeCard';
 import ProgressCard from '../components/ProgressCard';
 import type { Colors } from '../theme/Color';
@@ -19,9 +20,14 @@ import useHomeViewModel from '../viewmodels/HomeViewModel';
 interface HomeScreenProps {
   vm: ReturnType<typeof useHomeViewModel>;
   colors: Colors;
+  firstName: string;
 }
 
-export default function HomeScreen({ vm, colors }: HomeScreenProps) {
+export default function HomeScreen({
+  vm,
+  colors,
+  firstName,
+}: HomeScreenProps) {
   const actions = [
     { icon: '🏃', title: 'Log Workout', screen: 'Record Workout' },
     { icon: '⚑', title: 'My Goals', screen: 'My Goals' },
@@ -59,10 +65,11 @@ export default function HomeScreen({ vm, colors }: HomeScreenProps) {
   ];
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
-      <StatusBar
-        style={vm.darkMode ? 'light' : 'dark'}
-      />
+    <SafeAreaView
+      edges={['top']}
+      style={[styles.safe, { backgroundColor: colors.background }]}
+    >
+      <StatusBar style={vm.darkMode ? 'light' : 'dark'} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -71,7 +78,7 @@ export default function HomeScreen({ vm, colors }: HomeScreenProps) {
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
             <Text style={[styles.greeting, { color: colors.text }]}>
-              Hello Rawan!
+              Hello {firstName}!
             </Text>
             <Text style={[styles.subtitle, { color: colors.muted }]}>
               Keep moving, you&apos;re doing great!
@@ -220,60 +227,11 @@ export default function HomeScreen({ vm, colors }: HomeScreenProps) {
         </View>
       </ScrollView>
 
-      <View
-        style={[
-          styles.bottomNav,
-          { backgroundColor: colors.card },
-        ]}
-      >
-        {[
-          { icon: '⌂', title: 'Home' },
-          { icon: '⚑', title: 'Challenges' },
-          { icon: '＋', title: 'Add' },
-          { icon: '▥', title: 'Leaderboard' },
-          { icon: '◉', title: 'Profile' },
-        ].map((item) => (
-          <TouchableOpacity
-            key={item.title}
-            style={styles.navItem}
-            onPress={() =>
-              vm.navigateTo(
-                item.title === 'Add' ? 'Record Workout' : item.title
-              )
-            }
-          >
-            <Text
-              style={[
-                styles.navIcon,
-                {
-                  color:
-                    item.title === vm.activeScreen
-                      ? colors.primary
-                      : colors.muted,
-                  fontSize: item.title === 'Add' ? 30 : 24,
-                },
-              ]}
-            >
-              {item.icon}
-            </Text>
-            {item.title !== 'Add' && (
-              <Text
-                style={[
-                  styles.navLabel,
-                  {
-                    color:
-                      item.title === vm.activeScreen
-                        ? colors.primary
-                        : colors.muted,
-                  },
-                ]}
-              >
-                {item.title}
-              </Text>
-            )}
-          </TouchableOpacity>
-        ))}
-      </View>
+      <BottomNav
+        colors={colors}
+        activeScreen={vm.activeScreen}
+        onNavigate={vm.navigateTo}
+      />
     </SafeAreaView>
   );
 }
@@ -328,15 +286,4 @@ const styles = StyleSheet.create({
     marginBottom: 7,
   },
   achievementText: { fontSize: 9, textAlign: 'center', fontWeight: '600' },
-  bottomNav: {
-    minHeight: 62,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingHorizontal: 5,
-    paddingVertical: 6,
-  },
-  navItem: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  navIcon: { lineHeight: 29, fontWeight: '700' },
-  navLabel: { fontSize: 9 },
 });

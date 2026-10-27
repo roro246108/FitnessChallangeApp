@@ -1,5 +1,6 @@
 
 export interface Colors {
+  scheme: 'light' | 'dark';
   background: string;
   card: string;
   primary: string;
@@ -11,6 +12,7 @@ export interface Colors {
 }
 
 export const lightColors: Colors = {
+  scheme: 'light',
   background: '#F7F6FF',
   card: '#FFFFFF',
   primary: '#6F4BF2',
@@ -22,6 +24,7 @@ export const lightColors: Colors = {
 };
 
 export const darkColors: Colors = {
+  scheme: 'dark',
   background: '#0E0B1F',
   card: '#241C40',
   primary: '#6F4BF2',

@@ -1,17 +1,20 @@
-
 import { useMemo, useState } from 'react';
 import {
+  getAchievements,
+  getActiveChallenges,
   getActivityData,
   getChallenges,
-  getAchievements,
 } from '../models/ActivityModel';
 
 export default function useHomeViewModel() {
   const [darkMode, setDarkMode] = useState<boolean>(true);
-  const [activeScreen, setActiveScreen] = useState<string>('Home');
+  const [history, setHistory] = useState<string[]>(['Home']);
+
+  const activeScreen = history[history.length - 1];
 
   const activity = useMemo(() => getActivityData(), []);
   const challenges = useMemo(() => getChallenges(), []);
+  const activeChallenges = useMemo(() => getActiveChallenges(), []);
   const achievements = useMemo(() => getAchievements(), []);
 
   const toggleTheme = (): void => {
@@ -19,11 +22,26 @@ export default function useHomeViewModel() {
   };
 
   const navigateTo = (screen: string): void => {
-    setActiveScreen(screen);
+    if (screen === 'Home') {
+      setHistory(['Home']);
+      return;
+    }
+
+    setHistory((current) =>
+      current[current.length - 1] === screen
+        ? current
+        : [...current, screen],
+    );
   };
 
   const goHome = (): void => {
-    setActiveScreen('Home');
+    setHistory(['Home']);
+  };
+
+  const goBack = (): void => {
+    setHistory((current) =>
+      current.length > 1 ? current.slice(0, -1) : ['Home'],
+    );
   };
 
   return {
@@ -32,8 +50,10 @@ export default function useHomeViewModel() {
     activeScreen,
     navigateTo,
     goHome,
+    goBack,
     activity,
     challenges,
+    activeChallenges,
     achievements,
   };
 }

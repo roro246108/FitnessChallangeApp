@@ -44,6 +44,7 @@ export default function useRecordWorkoutViewModel() {
     setDuration((current) =>
       Math.max(1, Math.min(300, current + amount))
     );
+
     setError('');
     setMessage('');
   };
@@ -71,28 +72,49 @@ export default function useRecordWorkoutViewModel() {
   };
 
   const saveWorkout = (): boolean => {
-    if (!date.trim()) {
+    const trimmedDate = date.trim();
+
+    // 1. Check that the date is not empty.
+    if (!trimmedDate) {
       setError('Please enter a workout date.');
       return false;
     }
 
-    const parsedDate = new Date(`${date}T00:00:00`);
+    // 2. Validate YYYY-MM-DD format.
+    const dateMatch =
+      /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmedDate);
+
+    if (!dateMatch) {
+      setError('Enter a valid date in YYYY-MM-DD format.');
+      return false;
+    }
+
+    const year = Number(dateMatch[1]);
+    const month = Number(dateMatch[2]);
+    const day = Number(dateMatch[3]);
+
+    // 3. Validate the actual calendar date using local time.
+    // Do not use toISOString(), because it converts to UTC.
+    const parsedDate = new Date(year, month - 1, day);
 
     const validDate =
-      /^\d{4}-\d{2}-\d{2}$/.test(date) &&
-      !Number.isNaN(parsedDate.getTime()) &&
-      parsedDate.toISOString().slice(0, 10) === date;
+      parsedDate.getFullYear() === year &&
+      parsedDate.getMonth() === month - 1 &&
+      parsedDate.getDate() === day;
 
     if (!validDate) {
       setError('Enter a valid date in YYYY-MM-DD format.');
       return false;
     }
 
-    if (parsedDate > new Date(`${getTodayDate()}T23:59:59`)) {
+    // 4. Prevent future workout dates.
+    // Both values use YYYY-MM-DD, so string comparison is safe.
+    if (trimmedDate > getTodayDate()) {
       setError('Workout date cannot be in the future.');
       return false;
     }
 
+    // 5. Validate workout duration.
     if (
       !Number.isFinite(duration) ||
       duration < 1 ||
@@ -102,54 +124,69 @@ export default function useRecordWorkoutViewModel() {
       return false;
     }
 
+    // 6. Create the workout.
     const workout: Workout = {
       id: editingId ?? `${Date.now()}`,
       type: workoutType,
       duration,
-      date,
+      date: trimmedDate,
       notes: notes.trim(),
       effort,
       calories,
     };
 
+    // 7. Update an existing workout or save a new one.
     if (editingId !== null) {
       setWorkouts((current) =>
         current.map((item) =>
           item.id === editingId ? workout : item
         )
       );
+
       setMessage('Workout updated successfully!');
     } else {
       setWorkouts((current) => [workout, ...current]);
+
       setMessage('Workout saved successfully!');
     }
 
     setEditingId(null);
     setError('');
+
     return true;
   };
 
   return {
     workoutTypes: WORKOUT_TYPES,
     effortLevels: EFFORT_LEVELS,
+
     workoutType,
     setWorkoutType,
+
     duration,
     updateDuration,
+
     date,
     setDate,
+
     notes,
     setNotes,
+
     effort,
     setEffort,
+
     calories,
+
     workouts,
     editingId,
     editWorkout,
+
     saveWorkout,
     resetForm,
+
     error,
     message,
+
     clearMessage: (): void => setMessage(''),
   };
 }

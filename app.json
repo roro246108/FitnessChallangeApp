@@ -1,4 +1,3 @@
-
 {
   "expo": {
     "name": "Fitness Challenge",
@@ -10,6 +9,9 @@
       "supportsTablet": true
     },
     "android": {},
-    "web": {}
+    "web": {},
+    "plugins": [
+      "@react-native-community/datetimepicker"
+    ]
   }
 }
