@@ -13,6 +13,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import BrandHeader from '../components/BrandHeader';
 import ShareWithSection, { type Visibility } from '../components/ShareWithSection';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../theme/useTheme';
@@ -22,6 +23,11 @@ import StreakBanner from '../components/StreakBanner';
 import EvidenceHistory from '../components/EvidenceHistory';
 import { Pulse, StepIndicator, TimelineRow } from '../components/UploadEvidencePieces';
 import { INK, STATUS_COLORS, makeStyles, makeTheme } from '../theme/uploadEvidenceStyles';
+import {
+  completeChallengeDay,
+  getLocalDateKey,
+  rejectChallengeDay,
+} from '../data/challengeProgress';
 import {
   MAX_MB,
   MAX_PHOTOS,
@@ -37,11 +43,16 @@ const DEFAULT_WORKOUT: Workout = {
 };
 
 interface Props {
+  challengeId: string;
   challengeTitle?: string;
   onBack: () => void;
 }
 
-export default function UploadEvidenceScreen({ challengeTitle, onBack }: Props) {
+export default function UploadEvidenceScreen({
+  challengeId,
+  challengeTitle,
+  onBack,
+}: Props) {
   const { colors, isDark } = useTheme();
   const t = useMemo(() => makeTheme(colors, isDark), [colors, isDark]);
   const s = useMemo(() => makeStyles(t), [t]);
@@ -68,13 +79,19 @@ export default function UploadEvidenceScreen({ challengeTitle, onBack }: Props) 
 
   // submissions log (saved on the device)
   const history = useEvidenceHistory();
-  const challengeRecords = history.records.filter((r) => r.challenge === workout.title);
+  const challengeRecords = history.records.filter(
+    (record) =>
+      record.challengeId === challengeId ||
+      (!record.challengeId && record.challenge === workout.title),
+  );
   const [visibility, setVisibility] = useState<Visibility>('community'); 
+  const submittedDateKey = useRef<string | null>(null);
 
   // every finished upload is added to the log once
   useEffect(() => {
     if (submitCount === 0) return;
-     history.add({
+    history.add({
+      challengeId,
       challenge: workout.title,
       uri: images[selected] ?? images[0] ?? '',
       note,
@@ -84,6 +101,26 @@ export default function UploadEvidenceScreen({ challengeTitle, onBack }: Props) 
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [submitCount]);
+
+  useEffect(() => {
+    if (submitCount === 0 || !status) return;
+    if (status === 'rejected') {
+      const dateKey = submittedDateKey.current;
+      submittedDateKey.current = null;
+      if (!dateKey) return;
+      void rejectChallengeDay(challengeId, dateKey).catch((error: unknown) => {
+        console.warn('Unable to update challenge progress from evidence:', error);
+      });
+      return;
+    }
+
+    const dateKey = submittedDateKey.current ?? getLocalDateKey();
+    submittedDateKey.current = dateKey;
+    const updateChallengeProgress = completeChallengeDay(challengeId, dateKey);
+    void updateChallengeProgress.catch((error: unknown) => {
+      console.warn('Unable to update challenge progress from evidence:', error);
+    });
+  }, [challengeId, status, submitCount]);
 
   const [sheet, setSheet] = useState(false);
 
@@ -422,6 +459,7 @@ export default function UploadEvidenceScreen({ challengeTitle, onBack }: Props) 
       {renderHeader()}
 
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+        <BrandHeader />
         <Animated.View style={{ opacity: enter, transform: [{ translateY: slide }] }}>
           {status ? renderDone(status) : renderForm()}
         </Animated.View>

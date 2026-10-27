@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import type { TextInputProps } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import BrandHeader from '../BrandHeader';
 import type { Colors } from '../../theme/Color';
 import type { AdminViewModel } from '../../viewmodels/AdminViewModel';
 import { getInitials } from '../../models/AdminModel';
@@ -640,6 +641,7 @@ export function AdminLayout({
             style={styles.flex}
             contentContainerStyle={styles.wideScroll}
           >
+            <BrandHeader />
             <View style={[styles.banner, { backgroundColor: colors.primary }]}>
               <View style={[styles.bannerCircle, { backgroundColor: colors.lavender }]} />
               <AdminAvatar colors={colors} admin={vm.admin} size={52} />
@@ -705,6 +707,7 @@ export function AdminLayout({
       </View>
 
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.page}>
+        <BrandHeader />
         {subtitle ? <AdminText colors={colors}>{subtitle}</AdminText> : null}
         {vm.feedback ? (
           <View

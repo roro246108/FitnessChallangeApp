@@ -17,6 +17,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
+import BrandHeader from '../components/BrandHeader';
 import BottomNav from '../components/BottomNav';
 import type { Colors } from '../theme/Color';
 import type { LeaderboardViewModel } from '../viewmodels/LeaderboardViewModel';
@@ -139,6 +140,7 @@ export default function LeaderboardScreen({
         showsVerticalScrollIndicator={false}
         contentContainerStyle={s.content}
       >
+        <BrandHeader />
         {/* Header */}
         <View style={s.header}>
           <TouchableOpacity
@@ -158,21 +160,6 @@ export default function LeaderboardScreen({
           </View>
 
           <Text style={s.headerIcon}>♧</Text>
-        </View>
-
-        <View
-          style={[
-            s.demoNotice,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.track,
-            },
-          ]}
-        >
-          <Text style={[s.demoNoticeText, { color: colors.muted }]}>
-            Demo data · Rankings use sample profiles. Reward redemption is
-            stored locally for this session.
-          </Text>
         </View>
 
         {/* Ranking period */}

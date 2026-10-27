@@ -14,6 +14,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import BrandHeader from '../components/BrandHeader';
+import BottomNav from '../components/BottomNav';
 import useRecordWorkoutViewModel from '../viewmodels/RecordWorkoutViewModel';
 import type { Colors } from '../theme/Color';
 
@@ -81,6 +83,7 @@ export default function RecordWorkoutScreen({
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
       >
+        <BrandHeader />
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onBack} style={styles.backButton}>
@@ -587,59 +590,11 @@ export default function RecordWorkoutScreen({
         )}
       </ScrollView>
 
-      {/* Bottom navigation */}
-      <View
-        style={[
-          styles.bottomNav,
-          { backgroundColor: colors.card, borderColor: colors.track },
-        ]}
-      >
-        <TouchableOpacity style={styles.navItem} onPress={onBack}>
-          <Text style={[styles.navIcon, { color: colors.muted }]}>⌂</Text>
-          <Text style={[styles.navLabel, { color: colors.muted }]}>
-            Home
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => onNavigate('Challenges')}
-        >
-          <Text style={[styles.navIcon, { color: colors.muted }]}>⚑</Text>
-          <Text style={[styles.navLabel, { color: colors.muted }]}>
-            Challenges
-          </Text>
-        </TouchableOpacity>
-
-        <View
-          style={[
-            styles.addButton,
-            { backgroundColor: colors.primary },
-          ]}
-        >
-          <Text style={styles.addText}>＋</Text>
-        </View>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => onNavigate('Leaderboard')}
-        >
-          <Text style={[styles.navIcon, { color: colors.muted }]}>▥</Text>
-          <Text style={[styles.navLabel, { color: colors.muted }]}>
-            Leaderboard
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => onNavigate('Profile')}
-        >
-          <Text style={[styles.navIcon, { color: colors.muted }]}>◉</Text>
-          <Text style={[styles.navLabel, { color: colors.muted }]}>
-            Profile
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <BottomNav
+        colors={colors}
+        activeScreen="Record Workout"
+        onNavigate={onNavigate}
+      />
     </SafeAreaView>
   );
 }
@@ -977,42 +932,4 @@ const styles = StyleSheet.create({
   savedWorkoutTitle: { fontSize: 13, fontWeight: '800' },
   savedNotes: { fontSize: 11, marginTop: 5 },
 
-  bottomNav: {
-    minHeight: 60,
-    borderTopWidth: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingHorizontal: 5,
-    paddingVertical: 5,
-  },
-
-  navItem: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  navIcon: {
-    fontSize: 23,
-    lineHeight: 28,
-    fontWeight: '700',
-  },
-
-  navLabel: { fontSize: 9 },
-
-  addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 3,
-  },
-
-  addText: {
-    color: '#FFFFFF',
-    fontSize: 29,
-    lineHeight: 34,
-  },
 });

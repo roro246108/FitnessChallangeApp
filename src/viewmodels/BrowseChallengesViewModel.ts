@@ -13,8 +13,6 @@ export default function useBrowseChallengesViewModel() {
   const [selectedCategory, setSelectedCategory] =
     useState<ChallengeCategory>('All');
 
-  const [joinedChallenges, setJoinedChallenges] = useState<string[]>([]);
-
   const categories: ChallengeCategory[] = [
     'All',
     'Steps',
@@ -41,14 +39,6 @@ export default function useBrowseChallengesViewModel() {
     });
   }, [searchQuery, selectedCategory]);
 
-  const toggleJoin = (challengeId: string): void => {
-    setJoinedChallenges((current) =>
-      current.includes(challengeId)
-        ? current.filter((id) => id !== challengeId)
-        : [...current, challengeId]
-    );
-  };
-
   return {
     categories,
     searchQuery,
@@ -56,7 +46,5 @@ export default function useBrowseChallengesViewModel() {
     selectedCategory,
     setSelectedCategory,
     challenges,
-    joinedChallenges,
-    toggleJoin,
   };
 }

@@ -10,6 +10,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import FriendsScreen from './src/screens/FriendsScreen';
 import BrowseChallengesScreen from './src/screens/BrowseChallengesScreen';
+import MyChallengesScreen from './src/screens/MyChallengesScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import LeaderboardScreen from './src/screens/LeaderboardScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
@@ -20,6 +21,7 @@ import UploadEvidenceScreen from './src/screens/UploadEvidenceScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
+import BrandHeader from './src/components/BrandHeader';
 
 import AdminDashboard from './src/screens/AdminDashboard';
 import ManageChallengesScreen from './src/screens/ManageChallengesScreen';
@@ -32,22 +34,45 @@ import useAdminViewModel from './src/viewmodels/AdminViewModel';
 import useFriendsViewModel from './src/viewmodels/FriendsViewModel';
 import useHomeViewModel from './src/viewmodels/HomeViewModel';
 
+import type { AuthResult } from './src/viewmodels/AuthViewModel';
+import { isAdminEmail } from './src/models/AuthModel';
 import { ThemeProvider, useTheme } from './src/theme/useTheme';
 
+const ADMIN_SCREENS = new Set([
+  'Admin Dashboard',
+  'Manage Challenges',
+  'Manage Users & Reports',
+]);
+
 function AppContent() {
-  // 1. Theme and home state
+  // 1. Authentication and app state
   const home = useHomeViewModel();
   const { colors, isDark, toggleTheme } = useTheme();
+  const auth = useAuthViewModel();
+  const isAdmin = auth.currentUser
+    ? isAdminEmail(auth.currentUser.email)
+    : false;
+
+  const navigateTo = (screen: string): void => {
+    if (!isAdmin && ADMIN_SCREENS.has(screen)) {
+      return;
+    }
+
+    home.navigateTo(screen);
+  };
 
   const vm = {
     ...home,
+    navigateTo,
     darkMode: isDark,
     toggleTheme,
   };
 
   // 2. Other ViewModels
   const adminVm = useAdminViewModel();
+
   const profileVm = useProfileViewModel(vm.activity);
+
   const friendsVm = useFriendsViewModel(
     profileVm.profile.username
   );
@@ -59,18 +84,29 @@ function AppContent() {
     friends: friendsVm.friends,
   });
 
-  const auth = useAuthViewModel();
-
   // 3. Navigation state
   const [selectedChallengeId, setSelectedChallengeId] =
     useState<string | null>(null);
 
-  const [proofFor, setProofFor] =
-    useState<string | null>(null);
+  const [proofFor, setProofFor] = useState<{
+    challengeId: string;
+    challengeTitle: string;
+  } | null>(null);
 
-  const firstName =
-    profileVm.profile.fullName.trim().split(/\s+/)[0] ||
-    'there';
+  const firstName = (
+    auth.currentUser?.name ?? profileVm.profile.fullName
+  ).trim().split(/\s+/)[0] || 'there';
+
+  const handleAuthentication = (result: AuthResult): AuthResult => {
+    if (result.success && result.identity) {
+      profileVm.setAccountIdentity(result.identity.name, result.identity.email);
+      home.navigateTo(
+        result.identity.isAdmin ? 'Admin Dashboard' : 'Home',
+      );
+    }
+
+    return result;
+  };
 
   // 4. Shared props for admin screens
   const adminProps = {
@@ -84,17 +120,15 @@ function AppContent() {
 
   // 5. Authentication screens
   if (auth.authScreen === 'Onboarding') {
-    return (
-      <OnboardingScreen
-        onGetStarted={auth.showLogin}
-      />
-    );
+    return <OnboardingScreen onGetStarted={auth.showLogin} />;
   }
 
   if (auth.authScreen === 'Login') {
     return (
       <LoginScreen
-        onLogin={auth.login}
+        onLogin={(email, password) =>
+          handleAuthentication(auth.login(email, password))
+        }
         onRegister={auth.showRegister}
         onForgotPassword={auth.forgotPassword}
       />
@@ -104,7 +138,11 @@ function AppContent() {
   if (auth.authScreen === 'Register') {
     return (
       <RegisterScreen
-        onRegister={auth.register}
+        onRegister={(name, email, password, confirmPassword) =>
+          handleAuthentication(
+            auth.register(name, email, password, confirmPassword),
+          )
+        }
         onLogin={auth.showLogin}
       />
     );
@@ -114,7 +152,8 @@ function AppContent() {
   if (proofFor !== null) {
     return (
       <UploadEvidenceScreen
-        challengeTitle={proofFor}
+        challengeId={proofFor.challengeId}
+        challengeTitle={proofFor.challengeTitle}
         onBack={() => setProofFor(null)}
       />
     );
@@ -125,13 +164,20 @@ function AppContent() {
     return (
       <ChallengeDetailsScreen
         challengeId={selectedChallengeId}
+        activeScreen={vm.activeScreen}
         onBack={() => setSelectedChallengeId(null)}
-        onSubmitProof={setProofFor}
+        onNavigate={(screen: string) => {
+          setSelectedChallengeId(null);
+          vm.navigateTo(screen);
+        }}
+        onSubmitProof={(challengeId: string, challengeTitle: string) => {
+          setProofFor({ challengeId, challengeTitle });
+        }}
       />
     );
   }
 
-  // 8. Goals screen
+  // 8. My Goals screen
   if (vm.activeScreen === 'My Goals') {
     return (
       <GoalsScreen
@@ -141,8 +187,24 @@ function AppContent() {
     );
   }
 
-  // 9. Admin screens
-  if (vm.activeScreen === 'Admin Dashboard') {
+  // 9. My Challenges screen
+  if (vm.activeScreen === 'My Challenges') {
+    return (
+      <MyChallengesScreen
+        onBack={vm.goBack}
+        onNavigate={vm.navigateTo}
+        onOpenChallenge={(challengeId: string) => {
+          setSelectedChallengeId(challengeId);
+        }}
+        onUploadEvidence={(challengeId: string, challengeTitle: string) => {
+          setProofFor({ challengeId, challengeTitle });
+        }}
+      />
+    );
+  }
+
+  // 10. Admin screens
+  if (isAdmin && vm.activeScreen === 'Admin Dashboard') {
     return (
       <AdminDashboard
         {...adminProps}
@@ -151,19 +213,15 @@ function AppContent() {
     );
   }
 
-  if (vm.activeScreen === 'Manage Challenges') {
-    return (
-      <ManageChallengesScreen {...adminProps} />
-    );
+  if (isAdmin && vm.activeScreen === 'Manage Challenges') {
+    return <ManageChallengesScreen {...adminProps} />;
   }
 
-  if (vm.activeScreen === 'Manage Users & Reports') {
-    return (
-      <ManageUsersReportsScreen {...adminProps} />
-    );
+  if (isAdmin && vm.activeScreen === 'Manage Users & Reports') {
+    return <ManageUsersReportsScreen {...adminProps} />;
   }
 
-  // 10. Browse challenges
+  // 11. Browse challenges
   if (vm.activeScreen === 'Challenges') {
     return (
       <BrowseChallengesScreen
@@ -171,12 +229,14 @@ function AppContent() {
         darkMode={vm.darkMode}
         onBack={vm.goBack}
         onNavigate={vm.navigateTo}
-        onOpenChallenge={setSelectedChallengeId}
+        onOpenChallenge={(challengeId: string) => {
+          setSelectedChallengeId(challengeId);
+        }}
       />
     );
   }
 
-  // 11. Record workout
+  // 12. Record workout
   if (vm.activeScreen === 'Record Workout') {
     return (
       <RecordWorkoutScreen
@@ -188,7 +248,7 @@ function AppContent() {
     );
   }
 
-  // 12. Leaderboard
+  // 13. Leaderboard
   if (vm.activeScreen === 'Leaderboard') {
     return (
       <LeaderboardScreen
@@ -201,7 +261,7 @@ function AppContent() {
     );
   }
 
-  // 13. Profile
+  // 14. Profile
   if (vm.activeScreen === 'Profile') {
     return (
       <ProfileScreen
@@ -222,7 +282,7 @@ function AppContent() {
     );
   }
 
-  // 14. Friends
+  // 15. Friends
   if (vm.activeScreen === 'Friends') {
     return (
       <FriendsScreen
@@ -235,7 +295,7 @@ function AppContent() {
     );
   }
 
-  // 15. Existing placeholder screens
+  // 16. Existing placeholder screens
   if (vm.activeScreen !== 'Home') {
     return (
       <View
@@ -244,42 +304,43 @@ function AppContent() {
           { backgroundColor: colors.background },
         ]}
       >
-        <Text style={{ fontSize: 42 }}>💪</Text>
+        <View style={styles.placeholderContent}>
+          <BrandHeader />
+          <Text style={{ fontSize: 42 }}>💪</Text>
 
-        <Text
-          style={[
-            styles.title,
-            { color: colors.text },
-          ]}
-        >
-          {vm.activeScreen}
-        </Text>
-
-        <Text
-          style={[
-            styles.subtitle,
-            { color: colors.muted },
-          ]}
-        >
-          This screen will be implemented next.
-        </Text>
-
-        <TouchableOpacity
-          style={[
-            styles.button,
-            { backgroundColor: colors.primary },
-          ]}
-          onPress={vm.goHome}
-        >
-          <Text style={styles.buttonText}>
-            Back to Home
+          <Text
+            style={[
+              styles.title,
+              { color: colors.text },
+            ]}
+          >
+            {vm.activeScreen}
           </Text>
-        </TouchableOpacity>
+
+          <Text
+            style={[
+              styles.subtitle,
+              { color: colors.muted },
+            ]}
+          >
+            This screen will be implemented next.
+          </Text>
+
+          <TouchableOpacity
+            style={[
+              styles.button,
+              { backgroundColor: colors.primary },
+            ]}
+            onPress={vm.goHome}
+          >
+            <Text style={styles.buttonText}>Back to Home</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
 
-  // 16. Home screen
+  // 17. Home screen
   return (
     <HomeScreen
       vm={vm}
@@ -289,11 +350,11 @@ function AppContent() {
   );
 }
 
-// App entry point: only one default export
+// App entry point
 export default function App() {
   return (
     <SafeAreaProvider>
-      <ThemeProvider initialDark>
+      <ThemeProvider initialDark={false}>
         <AppContent />
       </ThemeProvider>
     </SafeAreaProvider>
@@ -303,9 +364,12 @@ export default function App() {
 const styles = StyleSheet.create({
   placeholder: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
+  },
+  placeholderContent: {
+    alignItems: 'center',
+    width: '100%',
   },
 
   title: {

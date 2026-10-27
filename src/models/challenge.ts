@@ -1,4 +1,5 @@
 import { IoniconName } from './icons';
+import type { ChallengeCategory } from './ActivityModel';
 
 export type ChallengeTab = 'Rules' | 'Details' | 'Rewards';
 
@@ -9,7 +10,7 @@ export interface InfoItem {
 }
 
 export interface Challenge {
-  category: string;
+  category: ChallengeCategory;
   title: string;
   durationDays: number;
   level: string;

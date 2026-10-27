@@ -3,7 +3,7 @@ import { Challenge } from '../models/challenge';
 // Placeholder content: your original mockChallenge file was not in the upload
 // (it contained StreakCard by mistake), so this is built from how the screen uses it.
 export const mockChallenge: Challenge = {
-  category: 'Walking',
+  category: 'Steps',
   title: '10K Steps Challenge',
   durationDays: 30,
   level: 'Beginner',

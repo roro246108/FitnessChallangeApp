@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
+import BrandHeader from '../components/BrandHeader';
 import BottomNav from '../components/BottomNav';
 import type { ActivityData, Challenge } from '../models/ActivityModel';
 import type {
@@ -283,6 +284,7 @@ export default function ProfileScreen({
         keyboardDismissMode="on-drag"
         contentContainerStyle={styles.content}
       >
+        <BrandHeader />
         <View style={styles.header}>
           <TouchableOpacity
             accessibilityRole="button"
@@ -299,7 +301,7 @@ export default function ProfileScreen({
               FITNESS PROFILE
             </Text>
             <Text style={[styles.title, { color: colors.text }]}>
-              Your Profile
+              Profile
             </Text>
           </View>
 
@@ -319,7 +321,7 @@ export default function ProfileScreen({
         </View>
 
         <Text style={[styles.subtitle, { color: colors.muted }]}>
-          Your progress, goals, and preferences in one place.
+          Progress, goals, and preferences in one place.
         </Text>
 
         <View style={[styles.heroCard, { backgroundColor: colors.primary }]}>
@@ -610,9 +612,9 @@ export default function ProfileScreen({
 
           <TouchableOpacity
             accessibilityRole="button"
-            accessibilityLabel="Log a workout"
+            accessibilityLabel="Open fitness goals"
             activeOpacity={0.8}
-            onPress={() => onNavigate('Record Workout')}
+            onPress={() => onNavigate('My Goals')}
             style={[styles.compactAction, { backgroundColor: colors.primary }]}
           >
             <Text style={[styles.compactActionText, { color: colors.lime }]}>
@@ -710,18 +712,6 @@ export default function ProfileScreen({
             </Text>
           </View>
 
-          {activeChallenges.length > 0 ? (
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessibilityLabel="View challenges"
-              activeOpacity={0.75}
-              onPress={() => onNavigate('Challenges')}
-            >
-              <Text style={[styles.sectionAction, { color: colors.lavender }]}>
-                View all
-              </Text>
-            </TouchableOpacity>
-          ) : null}
         </View>
 
         <View

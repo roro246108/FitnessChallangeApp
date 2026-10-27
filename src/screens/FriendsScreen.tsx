@@ -16,6 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
+import BrandHeader from '../components/BrandHeader';
 import BottomNav from '../components/BottomNav';
 import type { Colors } from '../theme/Color';
 import type { FriendsViewModel } from '../viewmodels/FriendsViewModel';
@@ -256,6 +257,7 @@ export default function FriendsScreen({
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
       >
+        <BrandHeader />
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity

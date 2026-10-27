@@ -3,6 +3,7 @@ import { View, Text, Animated, Pressable, StyleSheet, StatusBar } from 'react-na
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/useTheme';
 import { NATIVE } from '../theme/motion';
+import BottomNav from '../components/BottomNav';
 import ChallengeHero from '../components/ChallengeHero';
 import CountdownBlock from '../components/CountdownBlock';
 import StatTile from '../components/StatTile';
@@ -18,11 +19,19 @@ import { CHALLENGE_TABS, useChallengeViewModel } from '../viewmodels/useChalleng
 
 interface Props {
   challengeId: string;
+  activeScreen: string;
   onBack: () => void;
-  onSubmitProof: (challengeTitle: string) => void;
+  onNavigate: (screen: string) => void;
+  onSubmitProof: (challengeId: string, challengeTitle: string) => void;
 }
 
-export default function ChallengeDetailsScreen({ challengeId, onBack, onSubmitProof }: Props) {
+export default function ChallengeDetailsScreen({
+  challengeId,
+  activeScreen,
+  onBack,
+  onNavigate,
+  onSubmitProof,
+}: Props) {
   const { colors } = useTheme();
   const { challenge: c, joined, toggleJoin, tab, setTab, days, toggleDay } =
     useChallengeViewModel(challengeId);
@@ -43,7 +52,7 @@ export default function ChallengeDetailsScreen({ challengeId, onBack, onSubmitPr
     else toggleJoin();
   };
 
-  const category = String(c.category);
+  const category = c.category;
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -107,7 +116,7 @@ export default function ChallengeDetailsScreen({ challengeId, onBack, onSubmitPr
 
             {joined && (
               <Pressable
-                onPress={() => onSubmitProof(c.title)}
+                onPress={() => onSubmitProof(challengeId, c.title)}
                 style={[styles.proofBtn, { borderColor: colors.primary }]}
               >
                 <Ionicons name="camera-outline" size={20} color={colors.primary} />
@@ -159,6 +168,12 @@ export default function ChallengeDetailsScreen({ challengeId, onBack, onSubmitPr
           </View>
         </View>
       </Animated.ScrollView>
+
+      <BottomNav
+        colors={colors}
+        activeScreen={activeScreen}
+        onNavigate={onNavigate}
+      />
 
       <ConfirmSheet
         visible={confirmWithdraw}

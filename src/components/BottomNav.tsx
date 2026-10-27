@@ -27,7 +27,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { icon: '⌂', label: 'Home', screen: 'Home' },
   { icon: '⚑', label: 'Challenges', screen: 'Challenges' },
-  { icon: '＋', label: 'Add', screen: 'Record Workout' },
+  { icon: '▤', label: 'My Challenges', screen: 'My Challenges' },
   { icon: '▥', label: 'Leaderboard', screen: 'Leaderboard' },
   { icon: '◉', label: 'Profile', screen: 'Profile' },
 ];
@@ -56,32 +56,7 @@ export default function BottomNav({
       ]}
     >
       {NAV_ITEMS.map((item) => {
-        const isAddButton = item.label === 'Add';
-        const isActive = !isAddButton && item.screen === activeScreen;
-
-        if (isAddButton) {
-          return (
-            <TouchableOpacity
-              key={item.label}
-              activeOpacity={0.8}
-              accessibilityRole="button"
-              accessibilityLabel="Record a workout"
-              onPress={() => onNavigate(item.screen)}
-              style={styles.item}
-            >
-              <View
-                style={[
-                  styles.addButton,
-                  { backgroundColor: colors.primary },
-                ]}
-              >
-                <Text style={[styles.addIcon, { color: colors.lime }]}>
-                  {item.icon}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          );
-        }
+        const isActive = item.screen === activeScreen;
 
         return (
           <TouchableOpacity
@@ -115,6 +90,7 @@ export default function BottomNav({
                 styles.label,
                 {
                   color: isActive ? activeLabelColor : colors.muted,
+                  fontSize: item.screen === 'My Challenges' ? 8 : 9,
                 },
               ]}
             >
@@ -161,17 +137,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: 3,
     textAlign: 'center',
-  },
-  addButton: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addIcon: {
-    fontSize: 31,
-    lineHeight: 35,
-    fontWeight: '700',
   },
 });

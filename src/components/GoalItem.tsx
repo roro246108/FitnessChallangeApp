@@ -1,9 +1,17 @@
+
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+} from 'react-native';
 import { Feather } from '@expo/vector-icons';
+
 import type { Colors } from '../theme/Color';
 import type { Goal } from '../viewmodels/useMyGoalsViewModel';
-import { CATEGORY_ICON, INK } from '../data/goalMeta';
+import { CATEGORY_IMAGE, INK } from '../data/goalMeta';
 
 interface Props {
   goal: Goal;
@@ -14,97 +22,337 @@ interface Props {
   onDelete: () => void;
 }
 
-export default function GoalItem({ goal, colors, onAdd, onToggle, onEdit, onDelete }: Props) {
+export default function GoalItem({
+  goal,
+  colors,
+  onAdd,
+  onToggle,
+  onEdit,
+  onDelete,
+}: Props) {
   const done = goal.current >= goal.target;
-  const pct = Math.min(goal.current / goal.target, 1);
+  const pct =
+    goal.target > 0
+      ? Math.min(Math.max(goal.current / goal.target, 0), 1)
+      : 0;
+
+  const percentage = Math.round(pct * 100);
+  const remaining = Math.max(goal.target - goal.current, 0);
+  const isWater = goal.category === 'Water';
 
   return (
-    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.track }]}>
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: colors.card,
+          borderColor: colors.track,
+        },
+      ]}
+    >
       <View style={styles.top}>
-        <View style={[styles.iconBox, { backgroundColor: done ? colors.lime : colors.lavender }]}>
-          <Text style={{ fontSize: 20 }}>{CATEGORY_ICON[goal.category]}</Text>
-        </View>
+        <Image
+          source={{ uri: CATEGORY_IMAGE[goal.category] }}
+          style={styles.goalImage}
+          resizeMode="cover"
+          accessibilityLabel={`${goal.category} photo`}
+        />
 
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.title, { color: colors.text }]}>{goal.title}</Text>
+        <View style={styles.info}>
+          <Text
+            style={[styles.title, { color: colors.text }]}
+            numberOfLines={2}
+          >
+            {goal.title}
+          </Text>
+
           <Text style={[styles.sub, { color: colors.muted }]}>
-            {goal.current.toLocaleString('en-US')} / {goal.target.toLocaleString('en-US')} {goal.unit}
-            {'  •  '}
-            {Math.round(pct * 100)}%
+            {goal.current.toLocaleString('en-US')} /{' '}
+            {goal.target.toLocaleString('en-US')} {goal.unit}
           </Text>
         </View>
 
-        <TouchableOpacity onPress={onEdit} style={styles.iconBtn} accessibilityLabel="Edit goal">
-          <Feather name="edit-2" size={17} color={colors.muted} />
-        </TouchableOpacity>
+        <View style={styles.rightActions}>
+          <Text
+            style={[
+              styles.percentage,
+              { color: done ? colors.lime : colors.primary },
+            ]}
+          >
+            {percentage}%
+          </Text>
 
-        <TouchableOpacity onPress={onDelete} style={styles.iconBtn} accessibilityLabel="Delete goal">
-          <Feather name="trash-2" size={17} color={colors.muted} />
-        </TouchableOpacity>
+          <View style={styles.iconActions}>
+            <TouchableOpacity
+              onPress={onEdit}
+              style={styles.iconBtn}
+              accessibilityLabel="Edit goal"
+              hitSlop={6}
+            >
+              <Feather
+                name="edit-2"
+                size={17}
+                color={colors.muted}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={onDelete}
+              style={styles.iconBtn}
+              accessibilityLabel="Delete goal"
+              hitSlop={6}
+            >
+              <Feather
+                name="trash-2"
+                size={17}
+                color={colors.muted}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
 
-      <View style={[styles.track, { backgroundColor: colors.track }]}>
+      <View
+        style={[
+          styles.track,
+          { backgroundColor: colors.track },
+        ]}
+      >
         <View
           style={[
             styles.fill,
-            { width: `${pct * 100}%`, backgroundColor: done ? colors.lime : colors.primary },
+            {
+              width: `${percentage}%`,
+              backgroundColor: done
+                ? colors.lime
+                : colors.primary,
+            },
           ]}
         />
       </View>
 
-      <View style={styles.actions}>
+      <View style={styles.bottomRow}>
+        <View style={styles.remaining}>
+          <Feather
+            name={done ? 'check-circle' : 'target'}
+            size={15}
+            color={done ? colors.lime : colors.lavender}
+          />
+          <Text
+            style={[
+              styles.remainingText,
+              { color: done ? colors.lime : colors.muted },
+            ]}
+            numberOfLines={2}
+          >
+            {done
+              ? 'Goal completed!'
+              : `${remaining.toLocaleString('en-US')} ${goal.unit} left`}
+          </Text>
+        </View>
+
         <TouchableOpacity
           onPress={onAdd}
           disabled={done}
-          style={[
-            styles.actionBtn,
-            { backgroundColor: done ? colors.track : colors.primary, opacity: done ? 0.6 : 1 },
-          ]}
-        >
-          <Feather name="plus" size={14} color={done ? colors.muted : '#FFFFFF'} />
-          <Text style={{ color: done ? colors.muted : '#FFFFFF', fontWeight: '700', fontSize: 12 }}>
-            Log progress
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={onToggle}
+          activeOpacity={0.8}
+          accessibilityLabel={
+            isWater ? 'Add water progress' : 'Log goal progress'
+          }
           style={[
             styles.actionBtn,
             {
-              backgroundColor: done ? colors.lime : 'transparent',
-              borderWidth: 1.5,
-              borderColor: done ? colors.lime : colors.primary,
+              backgroundColor: done
+                ? colors.track
+                : isWater
+                  ? 'transparent'
+                  : colors.primary,
+              borderColor: done
+                ? colors.track
+                : colors.primary,
+              borderWidth: isWater && !done ? 1 : 0,
+              opacity: done ? 0.65 : 1,
             },
           ]}
         >
-          <Feather name={done ? 'check-circle' : 'circle'} size={14} color={done ? INK : colors.primary} />
-          <Text style={{ color: done ? INK : colors.primary, fontWeight: '700', fontSize: 12 }}>
-            {done ? 'Completed' : 'Mark done'}
+          <Feather
+            name={done ? 'check' : 'plus'}
+            size={15}
+            color={
+              done
+                ? colors.muted
+                : isWater
+                  ? colors.primary
+                  : '#FFFFFF'
+            }
+          />
+          <Text
+            style={[
+              styles.actionText,
+              {
+                color: done
+                  ? colors.muted
+                  : isWater
+                    ? colors.primary
+                    : '#FFFFFF',
+              },
+            ]}
+          >
+            {done
+              ? 'Completed'
+              : isWater
+                ? 'Add glass'
+                : 'Log progress'}
           </Text>
         </TouchableOpacity>
       </View>
+
+      {!done && (
+        <TouchableOpacity
+          onPress={onToggle}
+          style={styles.markDone}
+          activeOpacity={0.8}
+        >
+          <Feather
+            name="check-circle"
+            size={14}
+            color={colors.muted}
+          />
+          <Text
+            style={[
+              styles.markDoneText,
+              { color: colors.muted },
+            ]}
+          >
+            Mark done
+          </Text>
+        </TouchableOpacity>
+      )}
+
+      {done && (
+        <View style={styles.completedMessage}>
+          <Feather
+            name="check-circle"
+            size={14}
+            color={INK}
+          />
+          <Text style={styles.completedText}>
+            Completed · Great job!
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: 20, borderWidth: 1, padding: 14, marginBottom: 12 },
-  top: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  iconBox: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 15, fontWeight: '800' },
-  sub: { fontSize: 12, marginTop: 3 },
-  iconBtn: { padding: 6 },
-  track: { height: 8, borderRadius: 4, marginTop: 14, overflow: 'hidden' },
-  fill: { height: 8, borderRadius: 4 },
-  actions: { flexDirection: 'row', gap: 10, marginTop: 14 },
-  actionBtn: {
+  card: {
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 10,
+    marginBottom: 12,
+  },
+  top: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 11,
+  },
+  goalImage: {
+    width: 92,
+    height: 92,
+    borderRadius: 14,
+    backgroundColor: '#241C40',
+  },
+  info: {
+    flex: 1,
+    minWidth: 0,
+    justifyContent: 'center',
+  },
+  title: {
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  sub: {
+    fontSize: 11,
+    marginTop: 5,
+  },
+  rightActions: {
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    alignSelf: 'stretch',
+  },
+  percentage: {
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  iconActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconBtn: {
+    padding: 5,
+  },
+  track: {
+    height: 8,
+    borderRadius: 5,
+    marginTop: 11,
+    overflow: 'hidden',
+  },
+  fill: {
+    height: '100%',
+    borderRadius: 5,
+  },
+  bottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 10,
+  },
+  remaining: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     gap: 6,
-    height: 38,
-    borderRadius: 12,
+    minWidth: 0,
+  },
+  remainingText: {
+    fontSize: 11,
+    flexShrink: 1,
+  },
+  actionBtn: {
+    minWidth: 112,
+    minHeight: 36,
+    paddingHorizontal: 10,
+    borderRadius: 11,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+  },
+  actionText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  markDone: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    marginTop: 9,
+    paddingVertical: 3,
+  },
+  markDoneText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  completedMessage: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 9,
+  },
+  completedText: {
+    color: '#CDFF7E',
+    fontSize: 11,
+    fontWeight: '700',
   },
 });

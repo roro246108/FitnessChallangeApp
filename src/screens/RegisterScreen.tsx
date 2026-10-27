@@ -11,6 +11,7 @@ import {
   StatusBar,
 } from 'react-native';
 
+import BrandHeader from '../components/BrandHeader';
 import type { AuthResult } from '../viewmodels/AuthViewModel';
 
 interface RegisterScreenProps {
@@ -68,10 +69,7 @@ export default function RegisterScreen({
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.brand}>
-          <Text style={styles.brandMark}>M</Text>
-          <Text style={styles.brandText}>MOVEWELL</Text>
-        </View>
+        <BrandHeader />
 
         <View style={styles.intro}>
           <Text style={styles.title}>
@@ -240,25 +238,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
     paddingTop: 55,
     paddingBottom: 30,
-  },
-
-  brand: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 9,
-  },
-
-  brandMark: {
-    color: '#6F4BF2',
-    fontSize: 31,
-    fontWeight: '900',
-  },
-
-  brandText: {
-    color: '#171326',
-    fontSize: 16,
-    fontWeight: '900',
-    letterSpacing: 2,
   },
 
   intro: {

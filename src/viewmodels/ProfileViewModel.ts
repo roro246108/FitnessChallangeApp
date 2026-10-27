@@ -160,6 +160,24 @@ export default function useProfileViewModel(activity: ActivityData) {
     setProfileFeedback(null);
   };
 
+  const setAccountIdentity = useCallback((name: string, email: string): void => {
+    const username =
+      email.split('@')[0].replace(/[^A-Za-z0-9._]/g, '').slice(0, 20) ||
+      'user';
+    const updateIdentity = (current: ProfileData): ProfileData => ({
+      ...current,
+      fullName: name,
+      username,
+      email,
+    });
+
+    setProfile(updateIdentity);
+    setDraftProfile(updateIdentity);
+    setIsEditingProfile(false);
+    setProfileErrors({});
+    setProfileFeedback(null);
+  }, []);
+
   const saveProfile = (): boolean => {
     const errors = validateProfile(draftProfile);
 
@@ -260,6 +278,7 @@ export default function useProfileViewModel(activity: ActivityData) {
     cancelEditingProfile,
     updateDraftField,
     updateDraftProfile,
+    setAccountIdentity,
     saveProfile,
     selectedActivities: draftPreferences.activities,
     selectedChallengeTypes: draftPreferences.challengeTypes,

@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import {
   INITIAL_MOCK_USERS,
+  isAdminEmail,
   validateEmail,
   validatePassword,
 } from '../models/AuthModel';
@@ -13,6 +14,11 @@ export type AuthScreen = 'Onboarding' | 'Login' | 'Register' | 'Home';
 export interface AuthResult {
   success: boolean;
   message: string;
+  identity?: {
+    name: string;
+    email: string;
+    isAdmin: boolean;
+  };
 }
 
 export default function useAuthViewModel() {
@@ -63,6 +69,11 @@ export default function useAuthViewModel() {
     return {
       success: true,
       message: 'Welcome back!',
+      identity: {
+        name: user.name,
+        email: user.email,
+        isAdmin: isAdminEmail(user.email),
+      },
     };
   };
 
@@ -130,6 +141,11 @@ export default function useAuthViewModel() {
     return {
       success: true,
       message: 'Account created successfully!',
+      identity: {
+        name: newUser.name,
+        email: newUser.email,
+        isAdmin: isAdminEmail(newUser.email),
+      },
     };
   };
 

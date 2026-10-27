@@ -7,6 +7,7 @@ import {
   ImageBackground,
   StatusBar,
 } from 'react-native';
+import BrandHeader from '../components/BrandHeader';
 
 interface OnboardingScreenProps {
   onGetStarted: () => void;
@@ -27,10 +28,7 @@ export default function OnboardingScreen({
       >
         <View style={styles.imageOverlay} />
 
-        <View style={styles.brand}>
-          <Text style={styles.brandMark}>M</Text>
-          <Text style={styles.brandText}>MOVEWELL</Text>
-        </View>
+        <BrandHeader />
 
         <View style={styles.content}>
           <Text style={styles.eyebrow}>YOUR STRONGER SELF</Text>
@@ -88,25 +86,6 @@ const styles = StyleSheet.create({
   imageOverlay: {
     ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(247, 246, 255, 0.48)',
-  },
-
-  brand: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-
-  brandMark: {
-    color: '#6F4BF2',
-    fontSize: 31,
-    fontWeight: '900',
-  },
-
-  brandText: {
-    color: '#171326',
-    fontSize: 17,
-    fontWeight: '900',
-    letterSpacing: 2,
   },
 
   content: {

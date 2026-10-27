@@ -11,9 +11,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
 import ActivitySummary from '../components/ActivitySummary';
+import BrandHeader from '../components/BrandHeader';
 import BottomNav from '../components/BottomNav';
 import ChallengeCard from '../components/ChallengeCard';
-import ProgressCard from '../components/ProgressCard';
 import type { Colors } from '../theme/Color';
 import useHomeViewModel from '../viewmodels/HomeViewModel';
 
@@ -75,6 +75,7 @@ export default function HomeScreen({
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
       >
+        <BrandHeader />
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
             <Text style={[styles.greeting, { color: colors.text }]}>
@@ -85,23 +86,7 @@ export default function HomeScreen({
             </Text>
           </View>
 
-          <TouchableOpacity
-            style={[styles.themeButton, { backgroundColor: colors.card }]}
-            onPress={vm.toggleTheme}
-          >
-            <Text style={{ fontSize: 24 }}>
-              {vm.darkMode ? '☀️' : '🌙'}
-            </Text>
-          </TouchableOpacity>
         </View>
-
-        <TouchableOpacity
-          accessibilityRole="button"
-          onPress={() => vm.navigateTo('Admin Dashboard')}
-          style={[styles.adminEntry, { backgroundColor: colors.card }]}
-        >
-          <Text style={{ color: colors.text, fontWeight: '700' }}>Admin Management →</Text>
-        </TouchableOpacity>
 
         <ActivitySummary activity={vm.activity} colors={colors} />
 
@@ -163,7 +148,7 @@ export default function HomeScreen({
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
               Your Progress
             </Text>
-            <TouchableOpacity onPress={() => vm.navigateTo('My Progress')}>
+            <TouchableOpacity onPress={() => vm.navigateTo('My Goals')}>
               <Text style={{ color: colors.primary, fontWeight: '700' }}>
                 View All
               </Text>
@@ -172,56 +157,31 @@ export default function HomeScreen({
 
           <View style={styles.progressRow}>
             {progressItems.map((item) => (
-              <ProgressCard
+              <View
                 key={item.label}
-                {...item}
-                colors={colors}
-              />
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              Recent Achievements
-            </Text>
-            <TouchableOpacity onPress={() => vm.navigateTo('Achievements')}>
-              <Text style={{ color: colors.primary, fontWeight: '700' }}>
-                View All
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.achievements}>
-            {vm.achievements.map((item, index) => (
-              <TouchableOpacity
-                key={item.id}
-                style={styles.achievement}
-                onPress={() => vm.navigateTo(item.title)}
+                style={[styles.progressCard, { backgroundColor: colors.card }]}
               >
-                <View
-                  style={[
-                    styles.badge,
-                    {
-                      backgroundColor:
-                        index === 2 || index === 3
-                          ? colors.lime
-                          : colors.lavender,
-                    },
-                  ]}
-                >
-                  <Text style={{ fontSize: 24 }}>{item.icon}</Text>
-                </View>
-                <Text
-                  style={[
-                    styles.achievementText,
-                    { color: colors.text },
-                  ]}
-                >
-                  {item.title}
+                <Text style={[styles.progressLabel, { color: colors.text }]}>
+                  {item.icon} {item.label}
                 </Text>
-              </TouchableOpacity>
+                <Text style={[styles.progressValue, { color: colors.text }]}>
+                  {item.value.toLocaleString()}
+                </Text>
+                <Text style={[styles.progressGoal, { color: colors.muted }]}>
+                  / {item.goal}
+                </Text>
+                <View style={[styles.progressTrack, { backgroundColor: colors.track }]}>
+                  <View
+                    style={[
+                      styles.progressFill,
+                      {
+                        width: `${Math.min(100, Math.max(0, item.progress))}%`,
+                        backgroundColor: item.color,
+                      },
+                    ]}
+                  />
+                </View>
+              </View>
             ))}
           </View>
         </View>
@@ -238,7 +198,6 @@ export default function HomeScreen({
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  adminEntry: { padding: 16, borderRadius: 16, marginBottom: 16 },
   content: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 24 },
   header: {
     flexDirection: 'row',
@@ -247,13 +206,6 @@ const styles = StyleSheet.create({
   },
   greeting: { fontSize: 26, fontWeight: '800' },
   subtitle: { fontSize: 13, marginTop: 5 },
-  themeButton: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   actions: { flexDirection: 'row', gap: 8, marginBottom: 24 },
   action: {
     flex: 1,
@@ -275,15 +227,15 @@ const styles = StyleSheet.create({
   },
   sectionTitle: { fontSize: 17, fontWeight: '800' },
   progressRow: { flexDirection: 'row', gap: 8 },
-  achievements: { flexDirection: 'row', justifyContent: 'space-between' },
-  achievement: { flex: 1, alignItems: 'center', paddingHorizontal: 2 },
-  badge: {
-    width: 50,
-    height: 50,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 7,
+  progressCard: {
+    flex: 1,
+    minWidth: 0,
+    padding: 9,
+    borderRadius: 15,
   },
-  achievementText: { fontSize: 9, textAlign: 'center', fontWeight: '600' },
+  progressLabel: { fontSize: 10, fontWeight: '600', marginBottom: 10 },
+  progressValue: { fontSize: 19, fontWeight: '800' },
+  progressGoal: { fontSize: 9, marginVertical: 7 },
+  progressTrack: { height: 7, borderRadius: 5, overflow: 'hidden' },
+  progressFill: { height: '100%', borderRadius: 5 },
 });

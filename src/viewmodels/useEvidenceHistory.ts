@@ -8,6 +8,7 @@ export type EvidenceVisibility = 'community' | 'private';
 
 export interface EvidenceRecord {
   id: string;
+  challengeId?: string;
   challenge: string;
   uri: string;
   note: string;

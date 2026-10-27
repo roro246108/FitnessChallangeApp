@@ -8,14 +8,7 @@ import {
 } from 'react-native';
 
 import type { Challenge } from '../models/ActivityModel';
-
-// Images are selected according to the challenge category.
-const challengeImages: Record<string, number> = {
-  Steps: require('../assets/photos/steps.jpg'),
-  Strength: require('../assets/photos/Strength.jpg'),
-  Cardio: require('../assets/photos/Cardio.jpg'),
-  Flexibility: require('../assets/photos/flexibility.jpg'),
-};
+import { CHALLENGE_IMAGES } from '../data/challengeImages';
 
 interface BrowseChallengeCardProps {
   challenge: Challenge;
@@ -25,27 +18,19 @@ interface BrowseChallengeCardProps {
     text: string;
     muted: string;
     primary: string;
-    
   };
-  joined: boolean;
-  onJoin: () => void;
-  onPress: () => void;
+  onViewDetails: () => void;
 }
 
 export default function BrowseChallengeCard({
   challenge,
   colors,
-  joined,
-  onJoin,
-  onPress,
+  onViewDetails,
 }: BrowseChallengeCardProps) {
-  const imageSource =
-    challengeImages[challenge.category] ?? challengeImages.Cardio;
+  const imageSource = CHALLENGE_IMAGES[challenge.category];
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.9}
-      onPress={onPress}
+    <View
       style={[
         styles.card,
         {
@@ -108,25 +93,17 @@ export default function BrowseChallengeCard({
 
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={onJoin}
-          style={[
-            styles.joinButton,
-            {
-              backgroundColor: joined ? colors.track : colors.primary,
-            },
-          ]}
+          onPress={onViewDetails}
+          accessibilityRole="button"
+          accessibilityLabel={`View details for ${challenge.title}`}
+          style={[styles.detailsButton, { backgroundColor: colors.primary }]}
         >
-          <Text
-            style={[
-              styles.joinText,
-              { color: joined ? colors.text : '#FFFFFF' },
-            ]}
-          >
-            {joined ? 'Joined ✓' : 'Join Challenge →'}
+          <Text style={styles.detailsButtonText}>
+            View Challenge Details →
           </Text>
         </TouchableOpacity>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 }
 
@@ -230,7 +207,7 @@ coverImage: {
     fontWeight: '800',
   },
 
-  joinButton: {
+  detailsButton: {
     minHeight: 38,
     paddingHorizontal: 5,
     borderRadius: 12,
@@ -238,7 +215,8 @@ coverImage: {
     justifyContent: 'center',
   },
 
-  joinText: {
+  detailsButtonText: {
+    color: '#FFFFFF',
     fontSize: 11,
     fontWeight: '800',
   },

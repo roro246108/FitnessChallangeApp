@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../theme/useTheme';
 import { NATIVE } from '../theme/motion';
 import { IoniconName } from '../models/icons';
+import BrandHeader from './BrandHeader';
 
 const TOP_INSET = Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 50;
 
@@ -146,18 +147,20 @@ export default function ChallengeHero({
       />
 
       {image ? (
-        <Animated.Image
-          source={image}
-          resizeMode="cover"
-          onLoad={onImageLoad}
-          style={[
-            StyleSheet.absoluteFill,
-            {
-              opacity: imgOpacity,
-              transform: [{ translateY: imgY }, { scale: imgZoom }, { scale: kbScale }, { translateX: kbX }],
-            },
-          ]}
-        />
+        <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+          <Animated.Image
+            source={image}
+            resizeMode="cover"
+            onLoad={onImageLoad}
+            style={[
+              styles.heroImage,
+              {
+                opacity: imgOpacity,
+                transform: [{ translateY: imgY }, { scale: imgZoom }, { scale: kbScale }, { translateX: kbX }],
+              },
+            ]}
+          />
+        </View>
       ) : (
         <>
           <Animated.View style={[styles.circleBig, { transform: [{ translateX: bigX }, { translateY: bigY }] }]} />
@@ -172,6 +175,7 @@ export default function ChallengeHero({
         style={StyleSheet.absoluteFill}
       />
 
+      <BrandHeader inverse />
       <View style={styles.topRow}>
         <RoundButton icon="chevron-back" label="Go back" onPress={onBack} />
         <Animated.View style={{ transform: [{ scale: heartPop }] }}>
@@ -215,9 +219,14 @@ const styles = StyleSheet.create({
   hero: {
     paddingHorizontal: 20,
     paddingBottom: 52,
+    width: '100%',
     minHeight: 460,
     overflow: 'hidden',
     justifyContent: 'space-between',
+  },
+  heroImage: {
+    width: '100%',
+    height: '100%',
   },
   circleBig: {
     position: 'absolute',

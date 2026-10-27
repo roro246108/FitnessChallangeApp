@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
+import BrandHeader from '../components/BrandHeader';
 import BottomNav from '../components/BottomNav';
 import BrowseChallengeCard from '../components/BrowseChallengeCard';
 import useBrowseChallengesViewModel, {
@@ -62,6 +63,7 @@ export default function BrowseChallengesScreen({
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
+        <BrandHeader />
         <View style={styles.header}>
           <TouchableOpacity
             onPress={onBack}
@@ -180,13 +182,11 @@ export default function BrowseChallengesScreen({
         {vm.challenges.length > 0 ? (
           vm.challenges.map((challenge) => (
             <BrowseChallengeCard
-  key={challenge.id}
-  challenge={challenge}
-  colors={colors}
-  joined={vm.joinedChallenges.includes(challenge.id)}
-  onJoin={() => vm.toggleJoin(challenge.id)}
-  onPress={() => onOpenChallenge(challenge.id)}
-/> 
+              key={challenge.id}
+              challenge={challenge}
+              colors={colors}
+              onViewDetails={() => onOpenChallenge(challenge.id)}
+            />
           ))
         ) : (
           <View
@@ -223,69 +223,6 @@ export default function BrowseChallengesScreen({
         )}
       </ScrollView>
 
-      {/* Bottom navigation */}
-      <View
-        style={[
-          styles.bottomNav,
-          {
-            backgroundColor: colors.card,
-            borderColor: colors.track,
-          },
-        ]}
-      >
-        <TouchableOpacity style={styles.navItem} onPress={onBack}>
-          <Text style={[styles.navIcon, { color: colors.muted }]}>
-            ⌂
-          </Text>
-          <Text style={[styles.navLabel, { color: colors.muted }]}>
-            Home
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={[styles.navIcon, { color: colors.primary }]}>
-            ⚑
-          </Text>
-          <Text style={[styles.navLabel, { color: colors.primary }]}>
-            Challenges
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.addButton,
-            { backgroundColor: colors.primary },
-          ]}
-          onPress={() => onNavigate('Record Workout')}
-          accessibilityLabel="Record workout"
-        >
-          <Text style={styles.addText}>＋</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => onNavigate('Leaderboard')}
-        >
-          <Text style={[styles.navIcon, { color: colors.muted }]}>
-            ▥
-          </Text>
-          <Text style={[styles.navLabel, { color: colors.muted }]}>
-            Leaderboard
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => onNavigate('Profile')}
-        >
-          <Text style={[styles.navIcon, { color: colors.muted }]}>
-            
-          </Text>
-          <Text style={[styles.navLabel, { color: colors.muted }]}>
-            Profile
-          </Text>
-        </TouchableOpacity>
-      </View>
       <BottomNav
         colors={colors}
         activeScreen="Challenges"
@@ -413,40 +350,5 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 12,
-  },
-  bottomNav: {
-    minHeight: 62,
-    borderTopWidth: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingHorizontal: 5,
-    paddingVertical: 5,
-  },
-  navItem: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  navIcon: {
-    fontSize: 23,
-    lineHeight: 28,
-    fontWeight: '700',
-  },
-  navLabel: {
-    fontSize: 9,
-  },
-  addButton: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 3,
-  },
-  addText: {
-    color: '#FFFFFF',
-    fontSize: 30,
-    lineHeight: 35,
   },
 });
