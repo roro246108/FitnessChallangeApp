@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,11 +8,20 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
+  Platform,
+  ImageBackground,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-
+import DateTimePicker from '@react-native-community/datetimepicker';
 import useRecordWorkoutViewModel from '../viewmodels/RecordWorkoutViewModel';
 import type { Colors } from '../theme/Color';
+
+const workoutImages = {
+  Running: require('../assets/photos/running.jpg'),
+  Strength: require('../assets/photos/Strength.jpg'),
+  Cardio: require('../assets/photos/Cardio.jpg'),
+  Yoga: require('../assets/photos/Yoga.jpg'),
+};
 
 interface RecordWorkoutScreenProps {
   colors: Colors;
@@ -28,9 +37,34 @@ export default function RecordWorkoutScreen({
   onNavigate,
 }: RecordWorkoutScreenProps) {
   const vm = useRecordWorkoutViewModel();
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const formatDate = (value: string): string => {
-    const [year, month, day] = value.split('-');
+  const getPickerDate = (value: string): Date => {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+
+    if (match) {
+      const year = Number(match[1]);
+      const month = Number(match[2]);
+      const day = Number(match[3]);
+      const parsed = new Date(year, month - 1, day);
+
+      if (
+        parsed.getFullYear() === year &&
+        parsed.getMonth() === month - 1 &&
+        parsed.getDate() === day
+      ) {
+        return parsed;
+      }
+    }
+
+    return new Date();
+  };
+
+  const formatDate = (value: Date): string => {
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+
     return `${year}-${month}-${day}`;
   };
 
@@ -38,9 +72,7 @@ export default function RecordWorkoutScreen({
     <SafeAreaView
       style={[styles.safe, { backgroundColor: colors.background }]}
     >
-      <StatusBar
-        style={darkMode ? 'light' : 'dark'}
-      />
+      <StatusBar style={darkMode ? 'light' : 'dark'} />
 
       <ScrollView
         keyboardShouldPersistTaps="handled"
@@ -50,7 +82,9 @@ export default function RecordWorkoutScreen({
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onBack} style={styles.backButton}>
-            <Text style={[styles.backIcon, { color: colors.text }]}>‹</Text>
+            <Text style={[styles.backIcon, { color: colors.text }]}>
+              ‹
+            </Text>
           </TouchableOpacity>
 
           <View style={styles.headerText}>
@@ -63,10 +97,11 @@ export default function RecordWorkoutScreen({
           </View>
         </View>
 
-        {/* Workout type */}
+        {/* Workout Type */}
         <View style={[styles.card, { backgroundColor: colors.card }]}>
           <View style={styles.sectionHeading}>
             <Text style={styles.sectionIcon}>⚒</Text>
+
             <View style={{ flex: 1 }}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>
                 Workout Type
@@ -77,6 +112,7 @@ export default function RecordWorkoutScreen({
             </View>
           </View>
 
+          {/* Workout cards with full-size photos */}
           <View style={styles.typeGrid}>
             {vm.workoutTypes.map((item) => {
               const selected = vm.workoutType === item.id;
@@ -85,49 +121,92 @@ export default function RecordWorkoutScreen({
                 <TouchableOpacity
                   key={item.id}
                   onPress={() => vm.setWorkoutType(item.id)}
+                  activeOpacity={0.85}
                   style={[
                     styles.typeButton,
                     {
-                      backgroundColor: selected
+                      borderColor: selected
                         ? colors.primary
-                        : colors.background,
-                      borderColor: colors.track,
+                        : colors.track,
                     },
                   ]}
                 >
-                  <Text style={styles.typeIcon}>{item.icon}</Text>
-                  <Text
-                    numberOfLines={1}
-                    style={[
-                      styles.typeLabel,
-                      { color: selected ? '#FFFFFF' : colors.text },
-                    ]}
+                  <ImageBackground
+                    source={
+                      workoutImages[
+                        item.id as keyof typeof workoutImages
+                      ]
+                    }
+                    style={styles.typeImageBackground}
+                    imageStyle={styles.typeImageStyle}
+                    resizeMode="cover"
                   >
-                    {item.label}
-                  </Text>
+                    <View
+                      style={[
+                        styles.typeImageOverlay,
+                        {
+                          backgroundColor: selected
+                            ? 'rgba(44, 24, 105, 0.22)'
+                            : 'rgba(8, 6, 24, 0.32)',
+                        },
+                      ]}
+                    />
+
+                    {selected && (
+                      <View style={styles.selectedBadge}>
+                        <Text style={styles.selectedBadgeText}>✓</Text>
+                      </View>
+                    )}
+
+                    <Text numberOfLines={1} style={styles.typeLabel}>
+                      {item.label}
+                    </Text>
+                  </ImageBackground>
                 </TouchableOpacity>
               );
             })}
           </View>
 
-          <View style={styles.banner}>
-            <Text style={styles.bannerEmoji}>
-              {vm.workoutTypes.find((item) => item.id === vm.workoutType)?.icon}
-            </Text>
+          {/* Banner photo changes with the selected workout */}
+          <ImageBackground
+            source={
+              workoutImages[
+                vm.workoutType as keyof typeof workoutImages
+              ]
+            }
+            style={styles.banner}
+            imageStyle={styles.bannerImage}
+            resizeMode="cover"
+          >
+            <View style={styles.bannerOverlay} />
+
             <View style={styles.bannerTextBox}>
-              <Text style={styles.bannerTitle}>{vm.workoutType}</Text>
+              <Text style={styles.bannerEyebrow}>
+                YOUR WORKOUT
+              </Text>
+
+              <Text style={styles.bannerTitle}>
+                {vm.workoutType}
+              </Text>
+
               <Text style={styles.bannerSubtitle}>
                 Every workout counts. Keep going!
               </Text>
             </View>
-            <Text style={styles.bannerRunner}>🏃</Text>
-          </View>
+          </ImageBackground>
         </View>
 
         {/* Duration */}
-        <View style={[styles.card, styles.compactCard, { backgroundColor: colors.card }]}>
+        <View
+          style={[
+            styles.card,
+            styles.compactCard,
+            { backgroundColor: colors.card },
+          ]}
+        >
           <View style={styles.sectionHeading}>
             <Text style={styles.sectionIcon}>◷</Text>
+
             <View>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>
                 Duration
@@ -142,9 +221,17 @@ export default function RecordWorkoutScreen({
             <TouchableOpacity
               accessibilityLabel="Decrease workout duration"
               onPress={() => vm.updateDuration(-5)}
-              style={[styles.durationButton, { backgroundColor: colors.track }]}
+              style={[
+                styles.durationButton,
+                { backgroundColor: colors.track },
+              ]}
             >
-              <Text style={[styles.durationButtonText, { color: colors.primary }]}>
+              <Text
+                style={[
+                  styles.durationButtonText,
+                  { color: colors.primary },
+                ]}
+              >
                 −
               </Text>
             </TouchableOpacity>
@@ -152,13 +239,18 @@ export default function RecordWorkoutScreen({
             <View
               style={[
                 styles.durationValueBox,
-                { borderColor: colors.track, backgroundColor: colors.background },
+                {
+                  borderColor: colors.track,
+                  backgroundColor: colors.background,
+                },
               ]}
             >
               <Text style={[styles.durationValue, { color: colors.text }]}>
                 {vm.duration}
               </Text>
-              <Text style={[styles.durationUnit, { color: colors.muted }]}>
+              <Text
+                style={[styles.durationUnit, { color: colors.muted }]}
+              >
                 minutes
               </Text>
             </View>
@@ -166,9 +258,17 @@ export default function RecordWorkoutScreen({
             <TouchableOpacity
               accessibilityLabel="Increase workout duration"
               onPress={() => vm.updateDuration(5)}
-              style={[styles.durationButton, { backgroundColor: colors.track }]}
+              style={[
+                styles.durationButton,
+                { backgroundColor: colors.track },
+              ]}
             >
-              <Text style={[styles.durationButtonText, { color: colors.primary }]}>
+              <Text
+                style={[
+                  styles.durationButtonText,
+                  { color: colors.primary },
+                ]}
+              >
                 +
               </Text>
             </TouchableOpacity>
@@ -176,12 +276,24 @@ export default function RecordWorkoutScreen({
         </View>
 
         {/* Date */}
-        <View style={[styles.card, styles.inputCard, { backgroundColor: colors.card }]}>
+        <View
+          style={[
+            styles.card,
+            styles.inputCard,
+            { backgroundColor: colors.card },
+          ]}
+        >
           <Text style={styles.sectionIcon}>▦</Text>
+
           <View style={styles.inputContent}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
               Date
             </Text>
+
+            <Text style={[styles.helper, { color: colors.muted }]}>
+              Choose a date or enter it manually
+            </Text>
+
             <TextInput
               value={vm.date}
               onChangeText={vm.setDate}
@@ -196,18 +308,74 @@ export default function RecordWorkoutScreen({
                 },
               ]}
               autoCapitalize="none"
-              accessibilityLabel="Workout date, YYYY-MM-DD"
+              autoCorrect={false}
+              keyboardType="numbers-and-punctuation"
+              accessibilityLabel="Enter workout date in YYYY-MM-DD format"
             />
+
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setShowDatePicker(true)}
+              style={[
+                styles.calendarButton,
+                {
+                  borderColor: colors.primary,
+                  backgroundColor: colors.background,
+                },
+              ]}
+            >
+              <Text style={{ fontSize: 18 }}>📅</Text>
+              <Text
+                style={[
+                  styles.calendarButtonText,
+                  { color: colors.primary },
+                ]}
+              >
+                Choose from Calendar
+              </Text>
+            </TouchableOpacity>
+
+            {showDatePicker && (
+              <DateTimePicker
+                value={getPickerDate(vm.date)}
+                mode="date"
+                display={
+                  Platform.OS === 'ios' ? 'spinner' : 'calendar'
+                }
+                maximumDate={new Date()}
+                onChange={(event, selectedDate) => {
+                  if (Platform.OS === 'android') {
+                    setShowDatePicker(false);
+                  }
+
+                  if (event.type === 'set' && selectedDate) {
+                    vm.setDate(formatDate(selectedDate));
+                  }
+
+                  if (event.type === 'dismissed') {
+                    setShowDatePicker(false);
+                  }
+                }}
+              />
+            )}
           </View>
         </View>
 
         {/* Notes */}
-        <View style={[styles.card, styles.inputCard, { backgroundColor: colors.card }]}>
+        <View
+          style={[
+            styles.card,
+            styles.inputCard,
+            { backgroundColor: colors.card },
+          ]}
+        >
           <Text style={styles.sectionIcon}>▤</Text>
+
           <View style={styles.inputContent}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
               Notes
             </Text>
+
             <TextInput
               value={vm.notes}
               onChangeText={vm.setNotes}
@@ -226,16 +394,29 @@ export default function RecordWorkoutScreen({
               ]}
               accessibilityLabel="Workout notes"
             />
-            <Text style={[styles.characterCount, { color: colors.muted }]}>
+
+            <Text
+              style={[
+                styles.characterCount,
+                { color: colors.muted },
+              ]}
+            >
               {vm.notes.length}/300
             </Text>
           </View>
         </View>
 
         {/* Effort */}
-        <View style={[styles.card, styles.compactCard, { backgroundColor: colors.card }]}>
+        <View
+          style={[
+            styles.card,
+            styles.compactCard,
+            { backgroundColor: colors.card },
+          ]}
+        >
           <View style={styles.sectionHeading}>
             <Text style={styles.sectionIcon}>▥</Text>
+
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
               Effort Level
             </Text>
@@ -265,6 +446,7 @@ export default function RecordWorkoutScreen({
                       { backgroundColor: item.color },
                     ]}
                   />
+
                   <Text
                     style={[
                       styles.effortText,
@@ -327,7 +509,10 @@ export default function RecordWorkoutScreen({
         <TouchableOpacity
           activeOpacity={0.85}
           onPress={vm.saveWorkout}
-          style={[styles.saveButton, { backgroundColor: colors.primary }]}
+          style={[
+            styles.saveButton,
+            { backgroundColor: colors.primary },
+          ]}
         >
           <Text style={styles.saveButtonText}>
             {vm.editingId ? 'Update Workout  ✓' : 'Save Workout  →'}
@@ -343,7 +528,9 @@ export default function RecordWorkoutScreen({
               </Text>
 
               <TouchableOpacity onPress={vm.resetForm}>
-                <Text style={{ color: colors.primary, fontWeight: '700' }}>
+                <Text
+                  style={{ color: colors.primary, fontWeight: '700' }}
+                >
                   New
                 </Text>
               </TouchableOpacity>
@@ -358,21 +545,37 @@ export default function RecordWorkoutScreen({
                 ]}
               >
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.savedWorkoutTitle, { color: colors.text }]}>
+                  <Text
+                    style={[
+                      styles.savedWorkoutTitle,
+                      { color: colors.text },
+                    ]}
+                  >
                     {workout.type} · {workout.duration} min
                   </Text>
+
                   <Text style={[styles.helper, { color: colors.muted }]}>
-                    {formatDate(workout.date)} · {workout.calories} estimated kcal
+                    {workout.date} · {workout.calories} estimated kcal
                   </Text>
+
                   {workout.notes ? (
-                    <Text style={[styles.savedNotes, { color: colors.muted }]}>
+                    <Text
+                      style={[
+                        styles.savedNotes,
+                        { color: colors.muted },
+                      ]}
+                    >
                       {workout.notes}
                     </Text>
                   ) : null}
                 </View>
 
-                <TouchableOpacity onPress={() => vm.editWorkout(workout)}>
-                  <Text style={{ color: colors.primary, fontWeight: '700' }}>
+                <TouchableOpacity
+                  onPress={() => vm.editWorkout(workout)}
+                >
+                  <Text
+                    style={{ color: colors.primary, fontWeight: '700' }}
+                  >
                     Edit
                   </Text>
                 </TouchableOpacity>
@@ -391,7 +594,9 @@ export default function RecordWorkoutScreen({
       >
         <TouchableOpacity style={styles.navItem} onPress={onBack}>
           <Text style={[styles.navIcon, { color: colors.muted }]}>⌂</Text>
-          <Text style={[styles.navLabel, { color: colors.muted }]}>Home</Text>
+          <Text style={[styles.navLabel, { color: colors.muted }]}>
+            Home
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -404,7 +609,12 @@ export default function RecordWorkoutScreen({
           </Text>
         </TouchableOpacity>
 
-        <View style={[styles.addButton, { backgroundColor: colors.primary }]}>
+        <View
+          style={[
+            styles.addButton,
+            { backgroundColor: colors.primary },
+          ]}
+        >
           <Text style={styles.addText}>＋</Text>
         </View>
 
@@ -423,7 +633,9 @@ export default function RecordWorkoutScreen({
           onPress={() => onNavigate('Profile')}
         >
           <Text style={[styles.navIcon, { color: colors.muted }]}>◉</Text>
-          <Text style={[styles.navLabel, { color: colors.muted }]}>Profile</Text>
+          <Text style={[styles.navLabel, { color: colors.muted }]}>
+            Profile
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -432,112 +644,373 @@ export default function RecordWorkoutScreen({
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { paddingHorizontal: 15, paddingTop: 10, paddingBottom: 22 },
-  header: { flexDirection: 'row', alignItems: 'center', marginBottom: 18 },
+
+  content: {
+    paddingHorizontal: 15,
+    paddingTop: 10,
+    paddingBottom: 22,
+  },
+
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 18,
+  },
+
   backButton: { width: 28, marginRight: 7 },
   backIcon: { fontSize: 38, lineHeight: 42 },
   headerText: { flex: 1 },
   heading: { fontSize: 22, fontWeight: '800' },
   subtitle: { fontSize: 11, marginTop: 4 },
-  card: { borderRadius: 18, padding: 13, marginBottom: 11 },
-  sectionHeading: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  sectionIcon: { fontSize: 23, color: '#A38DF2', width: 27, textAlign: 'center' },
+
+  card: {
+    borderRadius: 18,
+    padding: 13,
+    marginBottom: 11,
+  },
+
+  sectionHeading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+
+  sectionIcon: {
+    fontSize: 23,
+    color: '#A38DF2',
+    width: 27,
+    textAlign: 'center',
+  },
+
   sectionTitle: { fontSize: 14, fontWeight: '800' },
   helper: { fontSize: 11, marginTop: 4 },
-  typeGrid: { flexDirection: 'row', gap: 7, marginTop: 14 },
+
+  typeGrid: {
+    flexDirection: 'row',
+    gap: 7,
+    marginTop: 14,
+  },
+
+  // Larger cards; photos fill the entire card.
   typeButton: {
-    flex: 1, minWidth: 0, height: 76, borderWidth: 1,
-    borderRadius: 13, alignItems: 'center', justifyContent: 'center', gap: 7,
-    paddingHorizontal: 2,
+    flex: 1,
+    minWidth: 0,
+    height: 115,
+    borderWidth: 2,
+    borderRadius: 13,
+    overflow: 'hidden',
+    padding: 0,
   },
-  typeIcon: { fontSize: 24 },
-  typeLabel: { fontSize: 10, fontWeight: '700' },
+
+  typeImageBackground: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'flex-end',
+  },
+
+  typeImageStyle: {
+    borderRadius: 11,
+  },
+
+  typeImageOverlay: {
+    ...StyleSheet.absoluteFill,
+  },
+
+  typeLabel: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
+    textAlign: 'center',
+    paddingVertical: 9,
+    paddingHorizontal: 3,
+    backgroundColor: 'rgba(8, 6, 24, 0.55)',
+  },
+
+  selectedBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 21,
+    height: 21,
+    borderRadius: 11,
+    backgroundColor: '#6F4BF2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  selectedBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+
+  // Full-width background photo that changes with the workout type.
   banner: {
-    height: 95, borderRadius: 14, backgroundColor: '#6340B9',
-    marginTop: 11, overflow: 'hidden', flexDirection: 'row',
-    alignItems: 'center', paddingHorizontal: 12,
+    height: 130,
+    borderRadius: 14,
+    backgroundColor: '#6340B9',
+    marginTop: 11,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    paddingHorizontal: 18,
   },
-  bannerEmoji: { fontSize: 45 },
-  bannerTextBox: { flex: 1, marginLeft: 9 },
-  bannerTitle: { color: '#FFFFFF', fontSize: 17, fontWeight: '800' },
-  bannerSubtitle: { color: '#F1E9FF', fontSize: 10, marginTop: 5 },
-  bannerRunner: { fontSize: 35 },
+
+  bannerImage: {
+    borderRadius: 14,
+  },
+
+  bannerOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(48, 24, 105, 0.62)',
+  },
+
+  bannerTextBox: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+
+  bannerEyebrow: {
+    color: '#CDFF7E',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+    marginBottom: 5,
+  },
+
+  bannerTitle: {
+    color: '#FFFFFF',
+    fontSize: 22,
+    fontWeight: '800',
+  },
+
+  bannerSubtitle: {
+    color: '#F1E9FF',
+    fontSize: 11,
+    marginTop: 6,
+  },
+
   compactCard: { paddingVertical: 13 },
+
   durationControls: {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'center', gap: 10, marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    marginTop: 12,
   },
+
   durationButton: {
-    width: 55, height: 49, borderRadius: 13,
-    alignItems: 'center', justifyContent: 'center',
+    width: 55,
+    height: 49,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
+
   durationButtonText: { fontSize: 29, lineHeight: 34 },
+
   durationValueBox: {
-    width: 110, height: 49, borderWidth: 1, borderRadius: 13,
-    alignItems: 'center', justifyContent: 'center',
+    width: 110,
+    height: 49,
+    borderWidth: 1,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
+
   durationValue: { fontSize: 23, fontWeight: '800' },
   durationUnit: { fontSize: 10 },
-  inputCard: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
+
+  inputCard: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'flex-start',
+  },
+
   inputContent: { flex: 1 },
+
   textInput: {
-    borderWidth: 1, borderRadius: 12, paddingHorizontal: 12,
-    paddingVertical: 10, marginTop: 8, fontSize: 12, minHeight: 42,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginTop: 8,
+    fontSize: 12,
+    minHeight: 42,
   },
-  notesInput: { minHeight: 68, textAlignVertical: 'top' },
-  characterCount: { fontSize: 10, textAlign: 'right', marginTop: 4 },
-  effortRow: { flexDirection: 'row', gap: 7, marginTop: 12 },
+
+  calendarButton: {
+    marginTop: 10,
+    minHeight: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+
+  calendarButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+
+  notesInput: {
+    minHeight: 68,
+    textAlignVertical: 'top',
+  },
+
+  characterCount: {
+    fontSize: 10,
+    textAlign: 'right',
+    marginTop: 4,
+  },
+
+  effortRow: {
+    flexDirection: 'row',
+    gap: 7,
+    marginTop: 12,
+  },
+
   effortButton: {
-    flex: 1, minWidth: 0, height: 42, borderRadius: 12, borderWidth: 1,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 5, paddingHorizontal: 2,
+    flex: 1,
+    minWidth: 0,
+    height: 42,
+    borderRadius: 12,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    paddingHorizontal: 2,
   },
-  effortDot: { width: 9, height: 9, borderRadius: 5 },
-  effortText: { fontSize: 10, fontWeight: '700' },
+
+  effortDot: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+  },
+
+  effortText: {
+    fontSize: 10,
+    fontWeight: '700',
+  },
+
   caloriesCard: {
-    borderRadius: 17, borderWidth: 1, padding: 12,
-    flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12,
+    borderRadius: 17,
+    borderWidth: 1,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
   },
+
   caloriesIconBox: {
-    width: 48, height: 48, borderRadius: 14, backgroundColor: '#E9F7B8',
-    alignItems: 'center', justifyContent: 'center',
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: '#E9F7B8',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
+
   caloriesTitle: { fontSize: 12, fontWeight: '800' },
   caloriesValueBox: { alignItems: 'flex-end' },
   caloriesValue: { fontSize: 23, fontWeight: '800' },
-  errorText: { color: '#FF6B6B', fontSize: 12, marginBottom: 10 },
+
+  errorText: {
+    color: '#FF6B6B',
+    fontSize: 12,
+    marginBottom: 10,
+  },
+
   successBox: {
-    backgroundColor: '#DFF6C3', borderRadius: 10, padding: 10, marginBottom: 10,
+    backgroundColor: '#DFF6C3',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 10,
   },
-  successText: { color: '#285A23', fontSize: 12, fontWeight: '700' },
+
+  successText: {
+    color: '#285A23',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+
   saveButton: {
-    minHeight: 51, borderRadius: 16, alignItems: 'center',
-    justifyContent: 'center', marginBottom: 22,
+    minHeight: 51,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 22,
   },
-  saveButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
+
+  saveButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+
   savedSection: { marginBottom: 20 },
+
   savedHeader: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'center', marginBottom: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
   },
+
   savedTitle: { fontSize: 17, fontWeight: '800' },
+
   savedWorkout: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    borderRadius: 14, padding: 12, marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 8,
   },
+
   savedWorkoutTitle: { fontSize: 13, fontWeight: '800' },
   savedNotes: { fontSize: 11, marginTop: 5 },
+
   bottomNav: {
-    minHeight: 60, borderTopWidth: 1, flexDirection: 'row',
-    alignItems: 'center', justifyContent: 'space-around',
-    paddingHorizontal: 5, paddingVertical: 5,
+    minHeight: 60,
+    borderTopWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingHorizontal: 5,
+    paddingVertical: 5,
   },
-  navItem: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  navIcon: { fontSize: 23, lineHeight: 28, fontWeight: '700' },
+
+  navItem: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  navIcon: {
+    fontSize: 23,
+    lineHeight: 28,
+    fontWeight: '700',
+  },
+
   navLabel: { fontSize: 9 },
+
   addButton: {
-    width: 44, height: 44, borderRadius: 22,
-    alignItems: 'center', justifyContent: 'center', marginHorizontal: 3,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 3,
   },
-  addText: { color: '#FFFFFF', fontSize: 29, lineHeight: 34 },
+
+  addText: {
+    color: '#FFFFFF',
+    fontSize: 29,
+    lineHeight: 34,
+  },
 });

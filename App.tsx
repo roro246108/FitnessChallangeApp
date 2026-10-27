@@ -5,16 +5,53 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import HomeScreen from './src/screens/HomeScreen';
 import BrowseChallengesScreen from './src/screens/BrowseChallengesScreen';
 import RecordWorkoutScreen from './src/screens/RecordWorkoutScreen';
+import OnboardingScreen from './src/screens/OnboardingScreen';
+import LoginScreen from './src/screens/LoginScreen';
+import RegisterScreen from './src/screens/RegisterScreen';
 
 import useHomeViewModel from './src/viewmodels/HomeViewModel';
+import useAuthViewModel from './src/viewmodels/AuthViewModel';
+
 import { lightColors, darkColors } from './src/theme/Color';
 import type { Colors } from './src/theme/Color';
 
 export default function App() {
   const vm = useHomeViewModel();
+  const auth = useAuthViewModel();
+
   const colors: Colors = vm.darkMode ? darkColors : lightColors;
 
-  // Browse Challenges screen
+  // 1. Onboarding screen
+  if (auth.authScreen === 'Onboarding') {
+    return (
+      <OnboardingScreen
+        onGetStarted={auth.showLogin}
+      />
+    );
+  }
+
+  // 2. Login screen
+  if (auth.authScreen === 'Login') {
+    return (
+      <LoginScreen
+        onLogin={auth.login}
+        onRegister={auth.showRegister}
+        onForgotPassword={auth.forgotPassword}
+      />
+    );
+  }
+
+  // 3. Register screen
+  if (auth.authScreen === 'Register') {
+    return (
+      <RegisterScreen
+        onRegister={auth.register}
+        onLogin={auth.showLogin}
+      />
+    );
+  }
+
+  // 4. Home and existing app screens
   if (vm.activeScreen === 'Challenges') {
     return (
       <BrowseChallengesScreen
@@ -26,7 +63,6 @@ export default function App() {
     );
   }
 
-  // Record Workout screen
   if (vm.activeScreen === 'Record Workout') {
     return (
       <RecordWorkoutScreen
@@ -38,7 +74,7 @@ export default function App() {
     );
   }
 
-  // Temporary screens
+  // Existing placeholder screens
   if (vm.activeScreen !== 'Home') {
     return (
       <View
@@ -67,7 +103,6 @@ export default function App() {
     );
   }
 
-  // Home screen
   return <HomeScreen vm={vm} colors={colors} />;
 }
 
@@ -78,21 +113,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 24,
   },
+
   title: {
     fontSize: 24,
     fontWeight: '800',
     marginTop: 16,
   },
+
   subtitle: {
     marginTop: 8,
     textAlign: 'center',
   },
+
   button: {
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 14,
     marginTop: 24,
   },
+
   buttonText: {
     color: '#FFFFFF',
     fontWeight: '700',
