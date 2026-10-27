@@ -17,19 +17,27 @@ import useBrowseChallengesViewModel, {
 } from '../viewmodels/BrowseChallengesViewModel';
 import type { Colors } from '../theme/Color';
 
+
+
+
 interface BrowseChallengesScreenProps {
   colors: Colors;
   darkMode: boolean;
   onBack: () => void;
   onNavigate: (screen: string) => void;
+  onOpenChallenge: (challengeId: string) => void; 
 }
+
+
 
 export default function BrowseChallengesScreen({
   colors,
   darkMode,
   onBack,
   onNavigate,
+  onOpenChallenge,
 }: BrowseChallengesScreenProps) {
+
   const vm = useBrowseChallengesViewModel();
 
   const categoryIcons: Record<ChallengeCategory, string> = {
@@ -39,6 +47,8 @@ export default function BrowseChallengesScreen({
     Strength: '⚒',
     Flexibility: '♧',
   };
+
+  
 
   return (
     <SafeAreaView
@@ -170,12 +180,13 @@ export default function BrowseChallengesScreen({
         {vm.challenges.length > 0 ? (
           vm.challenges.map((challenge) => (
             <BrowseChallengeCard
-              key={challenge.id}
-              challenge={challenge}
-              colors={colors}
-              joined={vm.joinedChallenges.includes(challenge.id)}
-              onJoin={() => vm.toggleJoin(challenge.id)}
-            />
+  key={challenge.id}
+  challenge={challenge}
+  colors={colors}
+  joined={vm.joinedChallenges.includes(challenge.id)}
+  onJoin={() => vm.toggleJoin(challenge.id)}
+  onPress={() => onOpenChallenge(challenge.id)}
+/> 
           ))
         ) : (
           <View
@@ -212,6 +223,69 @@ export default function BrowseChallengesScreen({
         )}
       </ScrollView>
 
+      {/* Bottom navigation */}
+      <View
+        style={[
+          styles.bottomNav,
+          {
+            backgroundColor: colors.card,
+            borderColor: colors.track,
+          },
+        ]}
+      >
+        <TouchableOpacity style={styles.navItem} onPress={onBack}>
+          <Text style={[styles.navIcon, { color: colors.muted }]}>
+            ⌂
+          </Text>
+          <Text style={[styles.navLabel, { color: colors.muted }]}>
+            Home
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.navItem}>
+          <Text style={[styles.navIcon, { color: colors.primary }]}>
+            ⚑
+          </Text>
+          <Text style={[styles.navLabel, { color: colors.primary }]}>
+            Challenges
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.addButton,
+            { backgroundColor: colors.primary },
+          ]}
+          onPress={() => onNavigate('Record Workout')}
+          accessibilityLabel="Record workout"
+        >
+          <Text style={styles.addText}>＋</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => onNavigate('Leaderboard')}
+        >
+          <Text style={[styles.navIcon, { color: colors.muted }]}>
+            ▥
+          </Text>
+          <Text style={[styles.navLabel, { color: colors.muted }]}>
+            Leaderboard
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => onNavigate('Profile')}
+        >
+          <Text style={[styles.navIcon, { color: colors.muted }]}>
+            
+          </Text>
+          <Text style={[styles.navLabel, { color: colors.muted }]}>
+            Profile
+          </Text>
+        </TouchableOpacity>
+      </View>
       <BottomNav
         colors={colors}
         activeScreen="Challenges"

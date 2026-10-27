@@ -1,12 +1,16 @@
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import FriendsScreen from './src/screens/FriendsScreen';
+import HomeScreen from './src/screens/HomeScreen';
 import BrowseChallengesScreen from './src/screens/BrowseChallengesScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import LeaderboardScreen from './src/screens/LeaderboardScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import RecordWorkoutScreen from './src/screens/RecordWorkoutScreen';
+import ChallengeDetailsScreen from './src/screens/ChallengeDetailsScreen';
+import GoalsScreen from './src/screens/GoalsScreen';
+import UploadEvidenceScreen from './src/screens/UploadEvidenceScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
@@ -15,9 +19,6 @@ import AdminDashboard from './src/screens/AdminDashboard';
 import ManageChallengesScreen from './src/screens/ManageChallengesScreen';
 import ManageUsersReportsScreen from './src/screens/ManageUsersReportsScreen';
 
-import useAdminViewModel from './src/viewmodels/AdminViewModel';
-import useFriendsViewModel from './src/viewmodels/FriendsViewModel';
-import useHomeViewModel from './src/viewmodels/HomeViewModel';
 import useLeaderboardViewModel from './src/viewmodels/LeaderboardViewModel';
 import useProfileViewModel from './src/viewmodels/ProfileViewModel';
 import useAuthViewModel from './src/viewmodels/AuthViewModel';
@@ -25,14 +26,67 @@ import useAuthViewModel from './src/viewmodels/AuthViewModel';
 import { lightColors, darkColors } from './src/theme/Color';
 import type { Colors } from './src/theme/Color';
 
-function AppContent() {
-  const vm = useHomeViewModel();
+import useAdminViewModel from './src/viewmodels/AdminViewModel';
+import useFriendsViewModel from './src/viewmodels/FriendsViewModel';
+import useHomeViewModel from './src/viewmodels/HomeViewModel';
+import { ThemeProvider, useTheme } from './src/theme/useTheme';
 
-  // Keep admin data available while switching between screens.
-  // Hooks must run before any conditional returns.
+function AppContent() {
+  // 1. Theme management
+  const home = useHomeViewModel();
+  const { colors, isDark, toggleTheme } = useTheme();
+
+  // Use ThemeProvider as the single source of truth
+  const vm = {
+    ...home,
+    darkMode: isDark,
+    toggleTheme,
+  };
+
+  // 2. Admin data
   const adminVm = useAdminViewModel();
 
-  const colors: Colors = vm.darkMode ? darkColors : lightColors;
+  // 3. Navigation state
+  const [selectedChallengeId, setSelectedChallengeId] =
+    useState<string | null>(null);
+
+  const [proofFor, setProofFor] =
+    useState<string | null>(null);
+
+  // Upload Evidence
+  if (proofFor !== null) {
+    return (
+      <UploadEvidenceScreen
+        challengeTitle={proofFor}
+        onBack={() => setProofFor(null)}
+      />
+    );
+  }
+
+  // Challenge Details
+  if (selectedChallengeId !== null) {
+    return (
+      <ChallengeDetailsScreen
+        challengeId={selectedChallengeId}
+        onBack={() => setSelectedChallengeId(null)}
+        onSubmitProof={setProofFor}
+      />
+    );
+  }
+
+  // Goals screen
+  if (vm.activeScreen === 'My Goals') {
+    return (
+      <GoalsScreen
+        onBack={vm.goHome}
+        onNavigate={vm.navigateTo}
+      />
+    );
+  }
+
+  // Keep the rest of your existing screen conditions
+  // and the final return below this point.
+}
 
   // Shared props for the three admin screens.
   const adminProps = {
@@ -111,6 +165,7 @@ function AppContent() {
         darkMode={vm.darkMode}
         onBack={vm.goBack}
         onNavigate={vm.navigateTo}
+        onOpenChallenge={setSelectedChallengeId}
       />
     );
   }
@@ -173,22 +228,12 @@ function AppContent() {
   // Existing placeholder screens
   if (vm.activeScreen !== 'Home') {
     return (
-      <View
-        style={[
-          styles.placeholder,
-          { backgroundColor: colors.background },
-        ]}
-      >
+      <View style={[styles.placeholder, { backgroundColor: colors.background }]}>
         <Text style={{ fontSize: 42 }}>💪</Text>
-
-        <Text style={[styles.title, { color: colors.text }]}>
-          {vm.activeScreen}
-        </Text>
-
+        <Text style={[styles.title, { color: colors.text }]}>{vm.activeScreen}</Text>
         <Text style={[styles.subtitle, { color: colors.muted }]}>
           This screen will be implemented next.
         </Text>
-
         <TouchableOpacity
           style={[styles.button, { backgroundColor: colors.primary }]}
           onPress={vm.goHome}
@@ -206,6 +251,17 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <AppContent />
+    </SafeAreaProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      {/* initialDark keeps the app starting dark, like the Home screen did before */}
+      <ThemeProvider initialDark>
+        <AppContent />
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }
