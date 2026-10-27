@@ -44,18 +44,6 @@ function AppContent() {
     vm: adminVm,
   };
 
-  // Admin screens must appear before the temporary-screen fallback.
-  if (vm.activeScreen === 'Admin Dashboard') {
-    return <AdminDashboard {...adminProps} onBack={vm.goHome} />;
-  }
-
-  if (vm.activeScreen === 'Manage Challenges') {
-    return <ManageChallengesScreen {...adminProps} />;
-  }
-
-  if (vm.activeScreen === 'Manage Users & Reports') {
-    return <ManageUsersReportsScreen {...adminProps} />;
-  }
 
   // Browse Challenges screen
   const profileVm = useProfileViewModel(vm.activity);
@@ -71,7 +59,6 @@ function AppContent() {
 
   const auth = useAuthViewModel();
 
-  const colors: Colors = vm.darkMode ? darkColors : lightColors;
 
   // 1. Onboarding screen
   if (auth.authScreen === 'Onboarding') {
@@ -101,6 +88,19 @@ function AppContent() {
         onLogin={auth.showLogin}
       />
     );
+  }
+  
+// Admin screens must appear before the temporary-screen fallback.
+  if (vm.activeScreen === 'Admin Dashboard') {
+    return <AdminDashboard {...adminProps} onBack={vm.goHome} />;
+  }
+
+  if (vm.activeScreen === 'Manage Challenges') {
+    return <ManageChallengesScreen {...adminProps} />;
+  }
+
+  if (vm.activeScreen === 'Manage Users & Reports') {
+    return <ManageUsersReportsScreen {...adminProps} />;
   }
 
   // 4. Home and existing app screens
