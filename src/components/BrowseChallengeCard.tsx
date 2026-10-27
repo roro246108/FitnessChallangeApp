@@ -1,11 +1,5 @@
-
 import React from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
 import type { Challenge } from '../models/ActivityModel';
 
@@ -17,9 +11,11 @@ interface BrowseChallengeCardProps {
     text: string;
     muted: string;
     primary: string;
+    
   };
   joined: boolean;
   onJoin: () => void;
+  onPress: () => void;
 }
 
 export default function BrowseChallengeCard({
@@ -27,9 +23,12 @@ export default function BrowseChallengeCard({
   colors,
   joined,
   onJoin,
+  onPress,
 }: BrowseChallengeCardProps) {
   return (
-    <View
+    <TouchableOpacity
+      activeOpacity={0.9}
+      onPress={onPress}
       style={[
         styles.card,
         {
@@ -87,7 +86,7 @@ export default function BrowseChallengeCard({
           </Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 

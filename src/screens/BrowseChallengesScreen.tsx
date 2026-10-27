@@ -17,19 +17,27 @@ import useBrowseChallengesViewModel, {
 } from '../viewmodels/BrowseChallengesViewModel';
 import type { Colors } from '../theme/Color';
 
+
+
+
 interface BrowseChallengesScreenProps {
   colors: Colors;
   darkMode: boolean;
   onBack: () => void;
   onNavigate: (screen: string) => void;
+  onOpenChallenge: (challengeId: string) => void; 
 }
+
+
 
 export default function BrowseChallengesScreen({
   colors,
   darkMode,
   onBack,
   onNavigate,
+  onOpenChallenge,
 }: BrowseChallengesScreenProps) {
+
   const vm = useBrowseChallengesViewModel();
 
   const categoryIcons: Record<ChallengeCategory, string> = {
@@ -39,6 +47,8 @@ export default function BrowseChallengesScreen({
     Strength: '⚒',
     Flexibility: '♧',
   };
+
+  
 
   return (
     <SafeAreaView
@@ -171,12 +181,13 @@ export default function BrowseChallengesScreen({
         {vm.challenges.length > 0 ? (
           vm.challenges.map((challenge) => (
             <BrowseChallengeCard
-              key={challenge.id}
-              challenge={challenge}
-              colors={colors}
-              joined={vm.joinedChallenges.includes(challenge.id)}
-              onJoin={() => vm.toggleJoin(challenge.id)}
-            />
+  key={challenge.id}
+  challenge={challenge}
+  colors={colors}
+  joined={vm.joinedChallenges.includes(challenge.id)}
+  onJoin={() => vm.toggleJoin(challenge.id)}
+  onPress={() => onOpenChallenge(challenge.id)}
+/> 
           ))
         ) : (
           <View
@@ -269,7 +280,7 @@ export default function BrowseChallengesScreen({
           onPress={() => onNavigate('Profile')}
         >
           <Text style={[styles.navIcon, { color: colors.muted }]}>
-            ◉
+            
           </Text>
           <Text style={[styles.navLabel, { color: colors.muted }]}>
             Profile
