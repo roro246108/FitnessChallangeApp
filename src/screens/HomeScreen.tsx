@@ -88,6 +88,14 @@ export default function HomeScreen({ vm, colors }: HomeScreenProps) {
           </TouchableOpacity>
         </View>
 
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={() => vm.navigateTo('Admin Dashboard')}
+          style={[styles.adminEntry, { backgroundColor: colors.card }]}
+        >
+          <Text style={{ color: colors.text, fontWeight: '700' }}>Admin Management →</Text>
+        </TouchableOpacity>
+
         <ActivitySummary activity={vm.activity} colors={colors} />
 
         <View style={styles.actions}>
@@ -272,6 +280,7 @@ export default function HomeScreen({ vm, colors }: HomeScreenProps) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
+  adminEntry: { padding: 16, borderRadius: 16, marginBottom: 16 },
   content: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 24 },
   header: {
     flexDirection: 'row',
