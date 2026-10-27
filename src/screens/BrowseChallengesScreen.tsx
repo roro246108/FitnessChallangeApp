@@ -7,10 +7,11 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
+import BottomNav from '../components/BottomNav';
 import BrowseChallengeCard from '../components/BrowseChallengeCard';
 import useBrowseChallengesViewModel, {
   type ChallengeCategory,
@@ -42,11 +43,10 @@ export default function BrowseChallengesScreen({
 
   return (
     <SafeAreaView
+      edges={['top']}
       style={[styles.safe, { backgroundColor: colors.background }]}
     >
-      <StatusBar
-        style={darkMode ? 'light' : 'dark'}
-      />
+      <StatusBar style={darkMode ? 'light' : 'dark'} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -213,69 +213,11 @@ export default function BrowseChallengesScreen({
         )}
       </ScrollView>
 
-      {/* Bottom navigation */}
-      <View
-        style={[
-          styles.bottomNav,
-          {
-            backgroundColor: colors.card,
-            borderColor: colors.track,
-          },
-        ]}
-      >
-        <TouchableOpacity style={styles.navItem} onPress={onBack}>
-          <Text style={[styles.navIcon, { color: colors.muted }]}>
-            ⌂
-          </Text>
-          <Text style={[styles.navLabel, { color: colors.muted }]}>
-            Home
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={[styles.navIcon, { color: colors.primary }]}>
-            ⚑
-          </Text>
-          <Text style={[styles.navLabel, { color: colors.primary }]}>
-            Challenges
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.addButton,
-            { backgroundColor: colors.primary },
-          ]}
-          onPress={() => onNavigate('Record Workout')}
-          accessibilityLabel="Record workout"
-        >
-          <Text style={styles.addText}>＋</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => onNavigate('Leaderboard')}
-        >
-          <Text style={[styles.navIcon, { color: colors.muted }]}>
-            ▥
-          </Text>
-          <Text style={[styles.navLabel, { color: colors.muted }]}>
-            Leaderboard
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => onNavigate('Profile')}
-        >
-          <Text style={[styles.navIcon, { color: colors.muted }]}>
-            ◉
-          </Text>
-          <Text style={[styles.navLabel, { color: colors.muted }]}>
-            Profile
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <BottomNav
+        colors={colors}
+        activeScreen="Challenges"
+        onNavigate={onNavigate}
+      />
     </SafeAreaView>
   );
 }
@@ -398,40 +340,5 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 12,
-  },
-  bottomNav: {
-    minHeight: 62,
-    borderTopWidth: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingHorizontal: 5,
-    paddingVertical: 5,
-  },
-  navItem: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  navIcon: {
-    fontSize: 23,
-    lineHeight: 28,
-    fontWeight: '700',
-  },
-  navLabel: {
-    fontSize: 9,
-  },
-  addButton: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 3,
-  },
-  addText: {
-    color: '#FFFFFF',
-    fontSize: 30,
-    lineHeight: 35,
   },
 });
