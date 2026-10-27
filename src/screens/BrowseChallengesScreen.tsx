@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   View,
@@ -7,10 +6,11 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
+import BottomNav from '../components/BottomNav';
 import BrowseChallengeCard from '../components/BrowseChallengeCard';
 import useBrowseChallengesViewModel, {
   type ChallengeCategory,
@@ -52,11 +52,10 @@ export default function BrowseChallengesScreen({
 
   return (
     <SafeAreaView
+      edges={['top']}
       style={[styles.safe, { backgroundColor: colors.background }]}
     >
-      <StatusBar
-        style={darkMode ? 'light' : 'dark'}
-      />
+      <StatusBar style={darkMode ? 'light' : 'dark'} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -287,6 +286,11 @@ export default function BrowseChallengesScreen({
           </Text>
         </TouchableOpacity>
       </View>
+      <BottomNav
+        colors={colors}
+        activeScreen="Challenges"
+        onNavigate={onNavigate}
+      />
     </SafeAreaView>
   );
 }

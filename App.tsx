@@ -1,33 +1,69 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-
+import FriendsScreen from './src/screens/FriendsScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import BrowseChallengesScreen from './src/screens/BrowseChallengesScreen';
+import HomeScreen from './src/screens/HomeScreen';
+import LeaderboardScreen from './src/screens/LeaderboardScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
 import RecordWorkoutScreen from './src/screens/RecordWorkoutScreen';
 import ChallengeDetailsScreen from './src/screens/ChallengeDetailsScreen';
 import GoalsScreen from './src/screens/GoalsScreen';
 import UploadEvidenceScreen from './src/screens/UploadEvidenceScreen';
+import OnboardingScreen from './src/screens/OnboardingScreen';
+import LoginScreen from './src/screens/LoginScreen';
+import RegisterScreen from './src/screens/RegisterScreen';
 
+import AdminDashboard from './src/screens/AdminDashboard';
+import ManageChallengesScreen from './src/screens/ManageChallengesScreen';
+import ManageUsersReportsScreen from './src/screens/ManageUsersReportsScreen';
+
+import useLeaderboardViewModel from './src/viewmodels/LeaderboardViewModel';
+import useProfileViewModel from './src/viewmodels/ProfileViewModel';
+import useAuthViewModel from './src/viewmodels/AuthViewModel';
+
+import { lightColors, darkColors } from './src/theme/Color';
+import type { Colors } from './src/theme/Color';
+
+import useAdminViewModel from './src/viewmodels/AdminViewModel';
+import useFriendsViewModel from './src/viewmodels/FriendsViewModel';
 import useHomeViewModel from './src/viewmodels/HomeViewModel';
 import { ThemeProvider, useTheme } from './src/theme/useTheme';
 
 function AppContent() {
-  // One source of truth for the theme: ThemeProvider.
-  // The Home view model keeps working, but its darkMode/toggleTheme are replaced here.
+  // 1. Theme management
   const home = useHomeViewModel();
   const { colors, isDark, toggleTheme } = useTheme();
-  const vm = { ...home, darkMode: isDark, toggleTheme };
 
-  const [selectedChallengeId, setSelectedChallengeId] = useState<string | null>(null);
-  const [proofFor, setProofFor] = useState<string | null>(null);
+  // Use ThemeProvider as the single source of truth
+  const vm = {
+    ...home,
+    darkMode: isDark,
+    toggleTheme,
+  };
 
-  // Upload Evidence (back returns to the challenge details)
+  // 2. Admin data
+  const adminVm = useAdminViewModel();
+
+  // 3. Navigation state
+  const [selectedChallengeId, setSelectedChallengeId] =
+    useState<string | null>(null);
+
+  const [proofFor, setProofFor] =
+    useState<string | null>(null);
+
+  // Upload Evidence
   if (proofFor !== null) {
-    return <UploadEvidenceScreen challengeTitle={proofFor} onBack={() => setProofFor(null)} />;
+    return (
+      <UploadEvidenceScreen
+        challengeTitle={proofFor}
+        onBack={() => setProofFor(null)}
+      />
+    );
   }
 
-  // Challenge Details (back returns to Browse)
+  // Challenge Details
   if (selectedChallengeId !== null) {
     return (
       <ChallengeDetailsScreen
@@ -40,35 +76,156 @@ function AppContent() {
 
   // Goals screen
   if (vm.activeScreen === 'My Goals') {
-    return <GoalsScreen onBack={vm.goHome} onNavigate={vm.navigateTo} />;
+    return (
+      <GoalsScreen
+        onBack={vm.goHome}
+        onNavigate={vm.navigateTo}
+      />
+    );
   }
 
+  // Keep the rest of your existing screen conditions
+  // and the final return below this point.
+}
+
+  // Shared props for the three admin screens.
+  const adminProps = {
+    colors,
+    darkMode: vm.darkMode,
+    onToggleTheme: vm.toggleTheme,
+    onNavigate: vm.navigateTo,
+    onBack: () => vm.navigateTo('Admin Dashboard'),
+    vm: adminVm,
+  };
+
+
   // Browse Challenges screen
+  const profileVm = useProfileViewModel(vm.activity);
+  const friendsVm = useFriendsViewModel(profileVm.profile.username);
+  const leaderboardVm = useLeaderboardViewModel({
+    currentUserName: profileVm.profile.fullName,
+    currentUserUsername: profileVm.profile.username,
+    currentUserInitials: profileVm.initials,
+    friends: friendsVm.friends,
+  });
+  const firstName =
+    profileVm.profile.fullName.trim().split(/\s+/)[0] || 'there';
+
+  const auth = useAuthViewModel();
+
+
+  // 1. Onboarding screen
+  if (auth.authScreen === 'Onboarding') {
+    return (
+      <OnboardingScreen
+        onGetStarted={auth.showLogin}
+      />
+    );
+  }
+
+  // 2. Login screen
+  if (auth.authScreen === 'Login') {
+    return (
+      <LoginScreen
+        onLogin={auth.login}
+        onRegister={auth.showRegister}
+        onForgotPassword={auth.forgotPassword}
+      />
+    );
+  }
+
+  // 3. Register screen
+  if (auth.authScreen === 'Register') {
+    return (
+      <RegisterScreen
+        onRegister={auth.register}
+        onLogin={auth.showLogin}
+      />
+    );
+  }
+  
+// Admin screens must appear before the temporary-screen fallback.
+  if (vm.activeScreen === 'Admin Dashboard') {
+    return <AdminDashboard {...adminProps} onBack={vm.goHome} />;
+  }
+
+  if (vm.activeScreen === 'Manage Challenges') {
+    return <ManageChallengesScreen {...adminProps} />;
+  }
+
+  if (vm.activeScreen === 'Manage Users & Reports') {
+    return <ManageUsersReportsScreen {...adminProps} />;
+  }
+
+  // 4. Home and existing app screens
   if (vm.activeScreen === 'Challenges') {
     return (
       <BrowseChallengesScreen
         colors={colors}
         darkMode={vm.darkMode}
-        onBack={vm.goHome}
+        onBack={vm.goBack}
         onNavigate={vm.navigateTo}
         onOpenChallenge={setSelectedChallengeId}
       />
     );
   }
 
-  // Record Workout screen
   if (vm.activeScreen === 'Record Workout') {
     return (
       <RecordWorkoutScreen
         colors={colors}
         darkMode={vm.darkMode}
-        onBack={vm.goHome}
+        onBack={vm.goBack}
         onNavigate={vm.navigateTo}
       />
     );
   }
 
-  // Temporary screens
+  if (vm.activeScreen === 'Leaderboard') {
+    return (
+      <LeaderboardScreen
+        colors={colors}
+        darkMode={vm.darkMode}
+        vm={leaderboardVm}
+        onBack={vm.goBack}
+        onNavigate={vm.navigateTo}
+      />
+    );
+  }
+
+  if (vm.activeScreen === 'Profile') {
+    return (
+      <ProfileScreen
+        colors={colors}
+        darkMode={vm.darkMode}
+        activity={vm.activity}
+        activeChallenges={vm.activeChallenges}
+        achievements={leaderboardVm.achievements}
+        levelInfo={leaderboardVm.levelInfo}
+        unlockedAchievements={leaderboardVm.unlockedCount}
+        totalAchievements={leaderboardVm.achievements.length}
+        totalPoints={leaderboardVm.totalPoints}
+        vm={profileVm}
+        onBack={vm.goBack}
+        onNavigate={vm.navigateTo}
+        onToggleTheme={vm.toggleTheme}
+      />
+    );
+  }
+
+  if (vm.activeScreen === 'Friends') {
+    return (
+      <FriendsScreen
+        colors={colors}
+        darkMode={vm.darkMode}
+        vm={friendsVm}
+        onBack={vm.goBack}
+        onNavigate={vm.navigateTo}
+      />
+    );
+  }
+
+  // Existing placeholder screens
   if (vm.activeScreen !== 'Home') {
     return (
       <View style={[styles.placeholder, { backgroundColor: colors.background }]}>
@@ -87,8 +244,15 @@ function AppContent() {
     );
   }
 
-  // Home screen
-  return <HomeScreen vm={vm} colors={colors} />;
+  return <HomeScreen vm={vm} colors={colors} firstName={firstName} />;
+}
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <AppContent />
+    </SafeAreaProvider>
+  );
 }
 
 export default function App() {
@@ -103,9 +267,33 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  placeholder: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  title: { fontSize: 24, fontWeight: '800', marginTop: 16 },
-  subtitle: { marginTop: 8, textAlign: 'center' },
-  button: { paddingHorizontal: 24, paddingVertical: 14, borderRadius: 14, marginTop: 24 },
-  buttonText: { color: '#FFFFFF', fontWeight: '700' },
+  placeholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+
+  title: {
+    fontSize: 24,
+    fontWeight: '800',
+    marginTop: 16,
+  },
+
+  subtitle: {
+    marginTop: 8,
+    textAlign: 'center',
+  },
+
+  button: {
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 14,
+    marginTop: 24,
+  },
+
+  buttonText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
 });
