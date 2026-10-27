@@ -11,6 +11,11 @@ import OnboardingScreen from './src/screens/OnboardingScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 
+import AdminDashboard from './src/screens/AdminDashboard';
+import ManageChallengesScreen from './src/screens/ManageChallengesScreen';
+import ManageUsersReportsScreen from './src/screens/ManageUsersReportsScreen';
+
+import useAdminViewModel from './src/viewmodels/AdminViewModel';
 import useFriendsViewModel from './src/viewmodels/FriendsViewModel';
 import useHomeViewModel from './src/viewmodels/HomeViewModel';
 import useLeaderboardViewModel from './src/viewmodels/LeaderboardViewModel';
@@ -22,6 +27,37 @@ import type { Colors } from './src/theme/Color';
 
 function AppContent() {
   const vm = useHomeViewModel();
+
+  // Keep admin data available while switching between screens.
+  // Hooks must run before any conditional returns.
+  const adminVm = useAdminViewModel();
+
+  const colors: Colors = vm.darkMode ? darkColors : lightColors;
+
+  // Shared props for the three admin screens.
+  const adminProps = {
+    colors,
+    darkMode: vm.darkMode,
+    onToggleTheme: vm.toggleTheme,
+    onNavigate: vm.navigateTo,
+    onBack: () => vm.navigateTo('Admin Dashboard'),
+    vm: adminVm,
+  };
+
+  // Admin screens must appear before the temporary-screen fallback.
+  if (vm.activeScreen === 'Admin Dashboard') {
+    return <AdminDashboard {...adminProps} onBack={vm.goHome} />;
+  }
+
+  if (vm.activeScreen === 'Manage Challenges') {
+    return <ManageChallengesScreen {...adminProps} />;
+  }
+
+  if (vm.activeScreen === 'Manage Users & Reports') {
+    return <ManageUsersReportsScreen {...adminProps} />;
+  }
+
+  // Browse Challenges screen
   const profileVm = useProfileViewModel(vm.activity);
   const friendsVm = useFriendsViewModel(profileVm.profile.username);
   const leaderboardVm = useLeaderboardViewModel({
