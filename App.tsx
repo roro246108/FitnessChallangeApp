@@ -1,8 +1,14 @@
+
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+
 import FriendsScreen from './src/screens/FriendsScreen';
-import HomeScreen from './src/screens/HomeScreen';
 import BrowseChallengesScreen from './src/screens/BrowseChallengesScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import LeaderboardScreen from './src/screens/LeaderboardScreen';
@@ -22,29 +28,38 @@ import ManageUsersReportsScreen from './src/screens/ManageUsersReportsScreen';
 import useLeaderboardViewModel from './src/viewmodels/LeaderboardViewModel';
 import useProfileViewModel from './src/viewmodels/ProfileViewModel';
 import useAuthViewModel from './src/viewmodels/AuthViewModel';
-
-import { lightColors, darkColors } from './src/theme/Color';
-import type { Colors } from './src/theme/Color';
-
 import useAdminViewModel from './src/viewmodels/AdminViewModel';
 import useFriendsViewModel from './src/viewmodels/FriendsViewModel';
 import useHomeViewModel from './src/viewmodels/HomeViewModel';
+
 import { ThemeProvider, useTheme } from './src/theme/useTheme';
 
 function AppContent() {
-  // 1. Theme management
+  // 1. Theme and home state
   const home = useHomeViewModel();
   const { colors, isDark, toggleTheme } = useTheme();
 
-  // Use ThemeProvider as the single source of truth
   const vm = {
     ...home,
     darkMode: isDark,
     toggleTheme,
   };
 
-  // 2. Admin data
+  // 2. Other ViewModels
   const adminVm = useAdminViewModel();
+  const profileVm = useProfileViewModel(vm.activity);
+  const friendsVm = useFriendsViewModel(
+    profileVm.profile.username
+  );
+
+  const leaderboardVm = useLeaderboardViewModel({
+    currentUserName: profileVm.profile.fullName,
+    currentUserUsername: profileVm.profile.username,
+    currentUserInitials: profileVm.initials,
+    friends: friendsVm.friends,
+  });
+
+  const auth = useAuthViewModel();
 
   // 3. Navigation state
   const [selectedChallengeId, setSelectedChallengeId] =
@@ -53,42 +68,11 @@ function AppContent() {
   const [proofFor, setProofFor] =
     useState<string | null>(null);
 
-  // Upload Evidence
-  if (proofFor !== null) {
-    return (
-      <UploadEvidenceScreen
-        challengeTitle={proofFor}
-        onBack={() => setProofFor(null)}
-      />
-    );
-  }
+  const firstName =
+    profileVm.profile.fullName.trim().split(/\s+/)[0] ||
+    'there';
 
-  // Challenge Details
-  if (selectedChallengeId !== null) {
-    return (
-      <ChallengeDetailsScreen
-        challengeId={selectedChallengeId}
-        onBack={() => setSelectedChallengeId(null)}
-        onSubmitProof={setProofFor}
-      />
-    );
-  }
-
-  // Goals screen
-  if (vm.activeScreen === 'My Goals') {
-    return (
-      <GoalsScreen
-        onBack={vm.goHome}
-        onNavigate={vm.navigateTo}
-      />
-    );
-  }
-
-  // Keep the rest of your existing screen conditions
-  // and the final return below this point.
-}
-
-  // Shared props for the three admin screens.
+  // 4. Shared props for admin screens
   const adminProps = {
     colors,
     darkMode: vm.darkMode,
@@ -98,23 +82,7 @@ function AppContent() {
     vm: adminVm,
   };
 
-
-  // Browse Challenges screen
-  const profileVm = useProfileViewModel(vm.activity);
-  const friendsVm = useFriendsViewModel(profileVm.profile.username);
-  const leaderboardVm = useLeaderboardViewModel({
-    currentUserName: profileVm.profile.fullName,
-    currentUserUsername: profileVm.profile.username,
-    currentUserInitials: profileVm.initials,
-    friends: friendsVm.friends,
-  });
-  const firstName =
-    profileVm.profile.fullName.trim().split(/\s+/)[0] || 'there';
-
-  const auth = useAuthViewModel();
-
-
-  // 1. Onboarding screen
+  // 5. Authentication screens
   if (auth.authScreen === 'Onboarding') {
     return (
       <OnboardingScreen
@@ -123,7 +91,6 @@ function AppContent() {
     );
   }
 
-  // 2. Login screen
   if (auth.authScreen === 'Login') {
     return (
       <LoginScreen
@@ -134,7 +101,6 @@ function AppContent() {
     );
   }
 
-  // 3. Register screen
   if (auth.authScreen === 'Register') {
     return (
       <RegisterScreen
@@ -143,21 +109,61 @@ function AppContent() {
       />
     );
   }
-  
-// Admin screens must appear before the temporary-screen fallback.
+
+  // 6. Upload evidence screen
+  if (proofFor !== null) {
+    return (
+      <UploadEvidenceScreen
+        challengeTitle={proofFor}
+        onBack={() => setProofFor(null)}
+      />
+    );
+  }
+
+  // 7. Challenge details screen
+  if (selectedChallengeId !== null) {
+    return (
+      <ChallengeDetailsScreen
+        challengeId={selectedChallengeId}
+        onBack={() => setSelectedChallengeId(null)}
+        onSubmitProof={setProofFor}
+      />
+    );
+  }
+
+  // 8. Goals screen
+  if (vm.activeScreen === 'My Goals') {
+    return (
+      <GoalsScreen
+        onBack={vm.goHome}
+        onNavigate={vm.navigateTo}
+      />
+    );
+  }
+
+  // 9. Admin screens
   if (vm.activeScreen === 'Admin Dashboard') {
-    return <AdminDashboard {...adminProps} onBack={vm.goHome} />;
+    return (
+      <AdminDashboard
+        {...adminProps}
+        onBack={vm.goHome}
+      />
+    );
   }
 
   if (vm.activeScreen === 'Manage Challenges') {
-    return <ManageChallengesScreen {...adminProps} />;
+    return (
+      <ManageChallengesScreen {...adminProps} />
+    );
   }
 
   if (vm.activeScreen === 'Manage Users & Reports') {
-    return <ManageUsersReportsScreen {...adminProps} />;
+    return (
+      <ManageUsersReportsScreen {...adminProps} />
+    );
   }
 
-  // 4. Home and existing app screens
+  // 10. Browse challenges
   if (vm.activeScreen === 'Challenges') {
     return (
       <BrowseChallengesScreen
@@ -170,6 +176,7 @@ function AppContent() {
     );
   }
 
+  // 11. Record workout
   if (vm.activeScreen === 'Record Workout') {
     return (
       <RecordWorkoutScreen
@@ -181,6 +188,7 @@ function AppContent() {
     );
   }
 
+  // 12. Leaderboard
   if (vm.activeScreen === 'Leaderboard') {
     return (
       <LeaderboardScreen
@@ -193,6 +201,7 @@ function AppContent() {
     );
   }
 
+  // 13. Profile
   if (vm.activeScreen === 'Profile') {
     return (
       <ProfileScreen
@@ -213,6 +222,7 @@ function AppContent() {
     );
   }
 
+  // 14. Friends
   if (vm.activeScreen === 'Friends') {
     return (
       <FriendsScreen
@@ -225,40 +235,64 @@ function AppContent() {
     );
   }
 
-  // Existing placeholder screens
+  // 15. Existing placeholder screens
   if (vm.activeScreen !== 'Home') {
     return (
-      <View style={[styles.placeholder, { backgroundColor: colors.background }]}>
+      <View
+        style={[
+          styles.placeholder,
+          { backgroundColor: colors.background },
+        ]}
+      >
         <Text style={{ fontSize: 42 }}>💪</Text>
-        <Text style={[styles.title, { color: colors.text }]}>{vm.activeScreen}</Text>
-        <Text style={[styles.subtitle, { color: colors.muted }]}>
+
+        <Text
+          style={[
+            styles.title,
+            { color: colors.text },
+          ]}
+        >
+          {vm.activeScreen}
+        </Text>
+
+        <Text
+          style={[
+            styles.subtitle,
+            { color: colors.muted },
+          ]}
+        >
           This screen will be implemented next.
         </Text>
+
         <TouchableOpacity
-          style={[styles.button, { backgroundColor: colors.primary }]}
+          style={[
+            styles.button,
+            { backgroundColor: colors.primary },
+          ]}
           onPress={vm.goHome}
         >
-          <Text style={styles.buttonText}>Back to Home</Text>
+          <Text style={styles.buttonText}>
+            Back to Home
+          </Text>
         </TouchableOpacity>
       </View>
     );
   }
 
-  return <HomeScreen vm={vm} colors={colors} firstName={firstName} />;
-}
-
-export default function App() {
+  // 16. Home screen
   return (
-    <SafeAreaProvider>
-      <AppContent />
-    </SafeAreaProvider>
+    <HomeScreen
+      vm={vm}
+      colors={colors}
+      firstName={firstName}
+    />
   );
 }
 
+// App entry point: only one default export
 export default function App() {
   return (
     <SafeAreaProvider>
-      {/* initialDark keeps the app starting dark, like the Home screen did before */}
       <ThemeProvider initialDark>
         <AppContent />
       </ThemeProvider>
